@@ -1,0 +1,10 @@
+[requires]
+rxcpp/4.1.0
+glfw/3.3.4
+websocketpp/0.8.2
+openssl/1.1.1k
+rapidjson/1.1.0
+date/3.0.1
+fmt/8.0.1
+[generators]
+cmake
