@@ -14,21 +14,67 @@
 
 namespace EC {
   using namespace std;
+
   class ExchangeConnector;
-  class ExchangeEventBus;
+  typedef shared_ptr<ExchangeConnector> ExchangeConnectorPtr;
 
   typedef websocketpp::lib::asio::ssl::context SSLContext;
   typedef websocketpp::client<websocketpp::config::asio_tls_client> ASIOClient;
 
   typedef websocketpp::lib::error_code ErrorCode;
-  typedef std::shared_ptr<SSLContext> ContextPtr;
-  typedef shared_ptr<ExchangeConnector> ExchangeConnectorPtr;
+  typedef shared_ptr<SSLContext> ContextPtr;
+
+  class Exchange {
+    public:
+      virtual void connect() = 0;
+      virtual void disconnect() = 0;
+      virtual void subscribe(const string&, MD::Channel) = 0;
+      virtual std::string const& getName() = 0;
+      virtual ~Exchange() {}
+  };
+  typedef unique_ptr<Exchange> ExchangePtr;
+  typedef unordered_map<std::string, unique_ptr<Exchange>> ExchangeMap;
+
+  class ExchangeEventBus {
+    typedef rxcpp::subjects::subject<MD::EventPtr> EventSubject;
+    typedef std::shared_ptr<EventSubject> EventSubjectPtr;
+    typedef std::unordered_map<std::string, EventSubjectPtr> EventBus;
+
+    ExchangeConnectorPtr exCon;
+    EventBus eventBus;
+
+    void ensureTopicExists(const std::string &topic) {
+      EventBus::iterator itr = eventBus.find(topic);
+      if (itr == eventBus.end()) {
+        eventBus.insert({topic, EventSubjectPtr(new EventSubject())});
+      }
+    }
+  public:
+    ExchangeEventBus(ExchangeConnectorPtr exCon) {
+      this->exCon = exCon;
+    }
+
+    void publish(const std::string &exchange, const std::string &symbol, MD::Channel chan, MD::EventPtr event) {
+      std::string topic = exchange + "_" + symbol + "_" + MD::ChannelName[chan];
+
+      ensureTopicExists(topic);
+      eventBus[topic]->get_subscriber().on_next(event);
+    }
+
+    template <typename T>
+    void subscribe(const std::string &exchange, const std::string& symbol, MD::Channel chan, T subscriber);
+  };
+
   typedef shared_ptr<ExchangeEventBus> ExchangeEventBusPtr;
 
+  // FIXME make this class threadsafe
   class ExchangeConnector {
   private:
     ASIOClient client;
     std::shared_ptr<std::thread> feedThread;
+    static ExchangeMap exchangeMap;
+    static ExchangeConnectorPtr self;
+    static ExchangeEventBusPtr exEventBus;
 
     /** @Brief Initializes the Exchange connector
      */
@@ -69,12 +115,53 @@ namespace EC {
     ASIOClient& getClient() {
       return client;
     }
-  public:
+
     /** @Brief Constructor will initialize and setup the websocketpp context and create a thread
      *  that the client will need to process incoming messages on
      */
     ExchangeConnector() {
       init();
+    }
+
+  public:
+
+    static ExchangeConnectorPtr getInstance() {
+      if (!self) {
+        self = ExchangeConnectorPtr(new ExchangeConnector());
+      }
+      return self;
+    }
+
+    static ExchangeEventBusPtr getEventBus() {
+      if (!exEventBus) {
+        exEventBus = ExchangeEventBusPtr(new ExchangeEventBus(getInstance()));
+      }
+      return exEventBus;
+    }
+
+    static int registerExchange(const std::string& name, ExchangePtr && exchange) {
+      exchangeMap[name] = std::move(exchange);
+      cout << "registered exchange with name - " << name << endl;
+      return 0;
+    }
+
+    bool ensureConnected(const std::string& exchange) {
+      // FIXME unnecessary allocation
+      ExchangePtr &p = exchangeMap[exchange];
+      if (p) {
+        p->connect();
+        return true;
+      }
+      else
+        return false;
+    }
+
+    void subscribe(const std::string& exchange, const std::string& symbol, MD::Channel chan) {
+      ExchangePtr &p = exchangeMap[exchange];
+      // FIXME silent return
+      if (p) {
+        p->subscribe(symbol, chan);
+      }
     }
 
     ASIOClient::connection_ptr getConnection(const std::string& uri, ErrorCode &ec) {
@@ -94,42 +181,23 @@ namespace EC {
     }
   };
 
-  class Exchange {
-    public:
-      void connect();
-      void disconnect();
-      std::string const& getName();
-  };
-
-  class ExchangeEventBus {
-    typedef rxcpp::subjects::subject<MD::EventPtr> EventSubject;
-    typedef std::shared_ptr<EventSubject> EventSubjectPtr;
-    typedef std::unordered_map<std::string, EventSubjectPtr> EventBus;
-
-    EventBus eventBus;
-
-    void ensureTopicExists(const std::string &topic) {
-      EventBus::iterator itr = eventBus.find(topic);
-      if (itr == eventBus.end()) {
-        eventBus.insert({topic, EventSubjectPtr(new EventSubject())});
-      }
-    }
-  public:
-    void publish(const std::string &exchange, const std::string &symbol, MD::Channel chan, MD::EventPtr event) {
-      std::string topic = exchange + "_" + symbol + "_" + MD::ChannelName[chan];
-
-      ensureTopicExists(topic);
-      eventBus[topic]->get_subscriber().on_next(event);
-    }
-
-    template <typename T>
-    void subscribe(const std::string &exchange, const std::string& symbol, MD::Channel chan, T subscriber) {
-      std::string topic = exchange + "_" + symbol + "_" + MD::ChannelName[chan];
-
-      ensureTopicExists(topic);
-      auto observable = eventBus[topic]->get_observable();
-      observable.subscribe(subscriber);
-    }
-  };
+  ExchangeConnectorPtr ExchangeConnector::self = nullptr;
+  ExchangeEventBusPtr ExchangeConnector::exEventBus = nullptr;
+  ExchangeMap ExchangeConnector::exchangeMap;
 }
+
+template <typename T>
+void EC::ExchangeEventBus::subscribe(const std::string &exchange, const std::string& symbol, MD::Channel chan, T subscriber) {
+  std::string topic = exchange + "_" + symbol + "_" + MD::ChannelName[chan];
+
+  // FIXME silent return should be avoided
+  if (!exCon->ensureConnected(exchange)) {
+    return;
+  }
+  exCon->subscribe(exchange, symbol, chan);
+  ensureTopicExists(topic);
+  auto observable = eventBus[topic]->get_observable();
+  observable.subscribe(subscriber);
+}
+
 #endif // EXCHANGE_CONNECT_H_

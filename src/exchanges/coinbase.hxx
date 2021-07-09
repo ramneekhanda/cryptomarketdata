@@ -15,14 +15,15 @@ namespace EC {
   using namespace rapidjson;
 
   class CoinBase : public Exchange {
-    const string coinbase_endpoint = "wss://ws-feed.pro.coinbase.com";
-    const string ticker_str = "{{\"type\":\"subscribe\",\"channels\":[{{\"name\":\"ticker\",\"product_ids\":[\"{}\"]}}]}}";
-    const string name = "COINBASE";
+    static const string coinbase_endpoint;
+    static const string ticker_str;
+    static const string name;
+    static int registerSelf;
 
     Document d;
     websocketpp::connection_hdl conHandle;
-    ExchangeConnectorPtr exCon;
-    ExchangeEventBusPtr evBus;
+    ExchangeConnectorPtr exCon = ExchangeConnector::getInstance();
+    ExchangeEventBusPtr evBus = ExchangeConnector::getEventBus();
     map<string, vector<MD::Channel>> subscriptions;
 
     uint64_t millisFromDate(const std::string& s) {
@@ -34,21 +35,33 @@ namespace EC {
       cout << s << endl;
       return pt.time_since_epoch().count();
     }
+
+    bool isConnectedOrConnecting() {
+      ErrorCode ec;
+      if (conHandle.lock()) {
+        ASIOClient::connection_ptr con = exCon->getConnectionFromHandle(conHandle, ec);
+        return (con->get_state() == websocketpp::session::state::open) || (con->get_state() == websocketpp::session::state::connecting);
+      }
+      return false;
+    }
+
   public:
 
-    CoinBase(ExchangeConnectorPtr exCon, ExchangeEventBusPtr evBus) {
-      this->exCon = exCon;
-      this->evBus = evBus;
+    CoinBase() {
+
     }
 
     std::string const& getName() {
       return name;
     }
 
+
     void connect() {
       ErrorCode ec;
-      ASIOClient::connection_ptr con;
+      if (isConnectedOrConnecting())
+        return;
 
+      ASIOClient::connection_ptr con;
       con = exCon->getConnection(coinbase_endpoint, ec);
 
       if (ec) {
@@ -62,6 +75,14 @@ namespace EC {
           for (auto chan : product_chan.second)
             this->subscribe(product_chan.first, chan);
         }
+      });
+
+      con->set_close_handler([](weak_ptr<void>) {
+
+      });
+
+      con->set_termination_handler([](weak_ptr<void>) {
+
       });
 
       con->set_message_handler([this](std::weak_ptr<void>, ASIOClient::message_ptr msg) {
@@ -110,7 +131,9 @@ namespace EC {
       subscriptions[product].push_back(chan);
     }
   };
-
+  const string CoinBase::coinbase_endpoint("wss://ws-feed.pro.coinbase.com");
+  const string CoinBase::ticker_str("{{\"type\":\"subscribe\",\"channels\":[{{\"name\":\"ticker\",\"product_ids\":[\"{}\"]}}]}}");
+  const string CoinBase::name("COINBASE");
+  int CoinBase::registerSelf = ExchangeConnector::registerExchange(CoinBase::name, ExchangePtr(new CoinBase()));
 }
-
 #endif // COINBASE_H_
