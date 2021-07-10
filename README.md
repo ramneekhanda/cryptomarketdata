@@ -3,6 +3,12 @@ Connect crypto exchanges market data with streaming api.
 
 # features
  - [ ] basic foundations
-	 - [ ] clean api for subscribing and unsubscribing to market data feeds
-	 - [ ] ability to add new exchanges with minimal effort
-    
+	 - [x] clean api for subscribing and unsubscribing to market data feeds
+	 - [x] ability to add new exchanges with minimal effort
+ - [ ] exchanges
+     - [ ] coinbase ticker
+     - [ ] coinbase depth
+     - [ ] binance ticker
+     - [ ] binance depth
+     - [ ] kraken ticker
+     - [ ] kraken depth
