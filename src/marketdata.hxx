@@ -7,6 +7,7 @@
 #include <tuple>
 
 namespace MD {
+
   enum Channel {
     TICKER,
     L2UPDATE
@@ -22,6 +23,11 @@ namespace MD {
     SELL
   };
 
+  enum L2UpdateType {
+    SNAPSHOT,
+    CHANGES
+  };
+
   struct Trade {
     Side side;
     uint64_t time;
@@ -31,8 +37,11 @@ namespace MD {
     double ask;
   };
 
-  struct L2Update {
-
+  struct Level2 {
+    L2UpdateType type;
+    uint64_t time;
+    //std::vector<std::pair<double, double>> bids;
+    //std::vector<std::pair<double, double>> asks;
   };
 
   struct Event {
@@ -43,7 +52,7 @@ namespace MD {
 
     union {
       Trade t;
-      L2Update l2;
+      Level2 l2;
     };
   };
   typedef std::shared_ptr<Event> EventPtr;

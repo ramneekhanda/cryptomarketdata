@@ -43,9 +43,8 @@ namespace EC {
 
   // FIXME make this class threadsafe
   class ExchangeConnector {
+
   protected:
-
-
     ASIOClient client;
     std::shared_ptr<std::thread> feedThread;
     static ExchangeMap exchangeMap;
@@ -119,6 +118,10 @@ namespace EC {
     }
 
     void shutdown() {
+      for (auto &conn : exchangeMap) {
+        conn.second->disconnect();
+      }
+      exchangeMap.clear();
       client.stop_perpetual();
       client.stop();
       feedThread->join();
