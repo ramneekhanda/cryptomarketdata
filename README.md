@@ -12,3 +12,6 @@ Connect crypto exchanges market data with streaming api.
      - [ ] binance depth
      - [ ] kraken ticker
      - [ ] kraken depth
+ - [ ] ability to add derived feeds
+   - [ ] eg. 5 minute volatility
+   - [ ] eg. moving average
