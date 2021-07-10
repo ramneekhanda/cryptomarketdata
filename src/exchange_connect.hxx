@@ -118,6 +118,11 @@ namespace EC {
         return false;
     }
 
+    void shutdown() {
+      client.stop_perpetual();
+      client.stop();
+      feedThread->join();
+    }
     void subscribe(const std::string& exchange, const std::string& symbol, MD::Channel chan) {
       ExchangePtr &p = exchangeMap[exchange];
       // FIXME silent return

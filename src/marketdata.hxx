@@ -27,6 +27,8 @@ namespace MD {
     uint64_t time;
     double price;
     double volume;
+    double bid;
+    double ask;
   };
 
   struct L2Update {
@@ -45,55 +47,6 @@ namespace MD {
     };
   };
   typedef std::shared_ptr<Event> EventPtr;
-
-  class OrderBook {
-  private:
-    std::mutex mtx;
-    std::string symbol;
-
-    std::vector<double> bids;
-    std::vector<double> bidVolumes;
-
-    std::vector<double> asks;
-    std::vector<double> askVolumes;
-
-    int64_t lastUpdateTime;
-
-  public:
-    OrderBook() {
-
-    }
-
-    void push(OrderBook &) {
-      const std::lock_guard<std::mutex> lock(mtx);
-
-    }
-
-  };
-
-
-  class TradeHistory {
-  private:
-    std::string symbol;
-    std::vector<Side> side;
-    std::vector<int64_t> time;
-    std::vector<double> volume;
-    std::vector<double> price;
-
-    std::mutex mtx;
-  public:
-    TradeHistory() {
-
-    }
-
-    void push(Trade &trade) {
-
-      side.push_back(trade.side);
-      time.push_back(trade.time);
-      volume.push_back(trade.volume);
-      price.push_back(trade.price);
-    }
-  };
 
 }
 

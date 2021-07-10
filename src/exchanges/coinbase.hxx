@@ -79,15 +79,15 @@ namespace EC {
       });
 
       con->set_close_handler([](weak_ptr<void>) {
-
+        cout << "connection closed" << endl;
       });
 
       con->set_termination_handler([](weak_ptr<void>) {
-
+        cout << "connection terminated" << endl;
       });
 
       con->set_message_handler([this](std::weak_ptr<void>, ASIOClient::message_ptr msg) {
-
+        cout << msg->get_payload() << endl;
         d.Parse(msg->get_payload().c_str());
         if (d.HasMember("type") && std::string(d["type"].GetString()) == "ticker") {
           MD::EventPtr evPtr = MD::EventPtr(new MD::Event());
@@ -101,7 +101,8 @@ namespace EC {
           t.time = millisFromDate(d["time"].GetString()); // time example -- "time": "2017-09-02T17:05:49.250000Z"
           t.volume = stod(d["last_size"].GetString());
           t.side = (d["side"].GetString() == std::string("buy")) ? MD::Side::BUY : MD::Side::SELL;
-
+          t.bid = stod(d["best_bid"].GetString());
+          t.ask = stod(d["best_ask"].GetString());
           evBus->publish(getName(), symbol, MD::Channel::TICKER, evPtr);
         }
       });
