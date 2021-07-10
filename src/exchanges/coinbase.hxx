@@ -8,6 +8,7 @@
 #include <date/tz.h>
 
 #include "../exchange_connect.hxx"
+#include "../exchange_eventbus.hxx"
 #include "../marketdata.hxx"
 
 namespace EC {
@@ -23,7 +24,7 @@ namespace EC {
     Document d;
     websocketpp::connection_hdl conHandle;
     ExchangeConnectorPtr exCon = ExchangeConnector::getInstance();
-    ExchangeEventBusPtr evBus = ExchangeConnector::getEventBus();
+    ExchangeEventBusPtr evBus = ExchangeEventBus::getInstance();
     map<string, vector<MD::Channel>> subscriptions;
 
     uint64_t millisFromDate(const std::string& s) {
