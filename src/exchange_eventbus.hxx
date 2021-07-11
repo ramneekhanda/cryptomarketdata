@@ -30,6 +30,9 @@ namespace EC {
         eventBus.insert({topic, EventSubjectPtr(new EventSubject())});
       }
     }
+
+    void unsubscribe(const std::string &exchange, const std::string& symbol, MD::Channel chan, rxcpp::composite_subscription& cs);
+
   public:
     ExchangeEventBus() {
       this->exCon = ExchangeConnector::getInstance();
@@ -43,7 +46,7 @@ namespace EC {
     }
 
     template <typename T>
-    void subscribe(const std::string &exchange, const std::string& symbol, MD::Channel chan, T subscriber);
+    std::function<void ()> subscribe(const std::string &exchange, const std::string& symbol, MD::Channel chan, T subscriber);
 
     static ExchangeEventBusPtr getInstance() {
       if (!self) {
@@ -55,18 +58,27 @@ namespace EC {
   ExchangeEventBusPtr ExchangeEventBus::self = nullptr;
 }
 
+void noop() {}
+
 template <typename T>
-void EC::ExchangeEventBus::subscribe(const std::string &exchange, const std::string& symbol, MD::Channel chan, T subscriber) {
+std::function<void ()> EC::ExchangeEventBus::subscribe(const std::string &exchange, const std::string& symbol, MD::Channel chan, T subscriber)  {
   std::string topic = exchange + "_" + symbol + "_" + MD::ChannelName[chan];
 
   // FIXME silent return should be avoided
   if (!exCon->ensureConnected(exchange)) {
-    return;
+    return &noop;
   }
   exCon->subscribe(exchange, symbol, chan);
   ensureTopicExists(topic);
   auto observable = eventBus[topic]->get_observable();
-  observable.subscribe(subscriber);
+  auto subscription = observable.subscribe(subscriber);
+  return std::bind(&EC::ExchangeEventBus::unsubscribe, this, exchange, symbol, chan, subscription);
+}
+
+void EC::ExchangeEventBus::unsubscribe(const std::string &exchange, const std::string& symbol, MD::Channel chan, rxcpp::composite_subscription& cs) {
+  std::string topic = exchange + "_" + symbol + "_" + MD::ChannelName[chan];
+  EventSubjectPtr sp = eventBus[topic];
+  cs.unsubscribe();
 }
 
 #endif // EXCHANGE_EVENTBUS_H_
