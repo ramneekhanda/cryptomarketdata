@@ -38,4 +38,4 @@ jobs:
             name: unit-tests # optional
             fail_ci_if_error: true 
             files: build/CMakeFiles/tests.dir/tests/coverage.json
-            verbose: true 
+            verbose: false 
