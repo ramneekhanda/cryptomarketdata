@@ -25,7 +25,7 @@ target_link_libraries(cdesk
 
 # test cases!
 add_executable(tests tests/main.cxx)
-target_compile_features(tests PRIVATE cxx_std_17)
+target_compile_features(tests PRIVATE cxx_std_11)
 
 target_link_libraries(tests
   CONAN_PKG::rxcpp
