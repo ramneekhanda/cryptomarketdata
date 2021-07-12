@@ -28,6 +28,8 @@ namespace EC {
     ExchangeConnectorPtr exCon = ExchangeConnector::getInstance();
     ExchangeEventBusPtr evBus = ExchangeEventBus::getInstance();
     map<string, vector<MD::Channel>> subscriptions;
+    bool isDisconnectIssued;
+    std::mutex m;
 
     bool isConnectedOrConnecting() {
       ErrorCode ec;
@@ -76,10 +78,6 @@ namespace EC {
       cout << "COINBASE: connection closed" << endl;
     }
 
-    void terminateHandler(websocketpp::connection_hdl) {
-      cout << "COINBASE: connection terminated" << endl;
-    }
-
     void onMessageHandler(websocketpp::connection_hdl, ASIOClient::message_ptr msg) {
       d.Parse(msg->get_payload().c_str());
       if (d.HasMember("type") && std::string(d["type"].GetString()) == "ticker") {
@@ -123,6 +121,8 @@ namespace EC {
 
     void connect() {
       ErrorCode ec;
+      std::unique_lock<std::mutex> lk(m);
+      isDisconnectIssued = false;
       if (isConnectedOrConnecting())
         return;
 
@@ -136,7 +136,6 @@ namespace EC {
 
       con->set_open_handler(bind(&CoinBase::openHandler, this, std::placeholders::_1));
       con->set_close_handler(bind(&CoinBase::closeHandler, this, std::placeholders::_1));
-      con->set_termination_handler(bind(&CoinBase::terminateHandler, this, std::placeholders::_1));
       con->set_message_handler(bind(&CoinBase::onMessageHandler, this, std::placeholders::_1, std::placeholders::_2));
       con->set_fail_handler(bind(&CoinBase::closeHandler, this, std::placeholders::_1));
 
@@ -145,14 +144,12 @@ namespace EC {
     }
 
     void disconnect() {
+      std::unique_lock<std::mutex> lk(m);
+      isDisconnectIssued = true;
       websocketpp::lib::error_code ec;
       ASIOClient::connection_ptr con = exCon->getConnectionFromHandle(conHandle, ec);
       ec.clear();
-
-      con->terminate(ec);
-      if (ec) {
-        cout << "COINBASE: terminating connection caused an error: " << ec.message() << endl;
-      }
+      con->close(websocketpp::close::status::normal, "goodbye!");
     }
 
     void subscribe(const string& product, MD::Channel chan) {
