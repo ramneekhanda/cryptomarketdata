@@ -14,7 +14,7 @@ jobs:
           ref: main
       - uses: jwlawson/actions-setup-cmake@v1.9
         with:
-          cmake-version: '3.3.0'
+          cmake-version: '3.20.x'
       - run: |
           wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key 2>/dev/null | sudo apt-key add -
           sudo add-apt-repository 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-12 main' -y
