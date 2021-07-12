@@ -37,5 +37,5 @@ jobs:
             flags: unittests # optional
             name: unit-tests # optional
             fail_ci_if_error: true 
-            files: $GITHUB_WORKSPACE/build/CMakeFiles/tests.dir/tests/coverage.json
+            files: build/CMakeFiles/tests.dir/tests/coverage.json
             verbose: true 
