@@ -1,4 +1,5 @@
 [settings]
+os: Linux
 arch=x86_64
 arch_build=x86_64
 compiler=clang
