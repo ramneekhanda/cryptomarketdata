@@ -1,0 +1,29 @@
+name: build-master
+on:
+      push:
+        paths-ignore:
+          - 'docs/**'
+        branches:
+          - master
+jobs:
+  check-unix-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: master
+      - uses: jwlawson/actions-setup-cmake@v1.9
+        with:
+          cmake-version: '3.3.0'
+      - run: |
+          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key 2>/dev/null | sudo apt-key add -
+          sudo add-apt-repository 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-12 main' -y
+          sudo apt-get update -q
+          sudo apt-get install -y build-essential clang-12 lld-12 libc++-12-dev libc++abi-12-dev clang-tools-12 python
+          sudo pip3 install wheel setuptools conan
+          cd $GITHUB_WORKSPACE
+          mkdir build
+          conan install .. -s cppstd=gnu17
+          cmake ..
+          make -j 4
+          bin/tests
