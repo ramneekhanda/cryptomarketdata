@@ -1,8 +1,10 @@
 #ifndef COINBASE_H_
 #define COINBASE_H_
 
+#define FMT_HEADER_ONLY
 
 #include <rapidjson/document.h>
+#include <fmt/core.h>
 
 #include "../exchange_connect.hxx"
 #include "../exchange_eventbus.hxx"

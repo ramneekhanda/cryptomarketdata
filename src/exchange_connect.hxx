@@ -8,7 +8,6 @@
 #include <websocketpp/config/asio_client.hpp>
 #include <websocketpp/client.hpp>
 #include <rxcpp/rx.hpp>
-#include <fmt/core.h>
 
 #include "marketdata.hxx"
 
