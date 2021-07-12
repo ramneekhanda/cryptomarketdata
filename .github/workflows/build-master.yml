@@ -28,3 +28,10 @@ jobs:
           cmake ..
           make -j 4
           bin/tests
+      - uses: codecov/codecov-action@v1
+        with:
+            token: c8f0d69e-69c7-4916-aa65-50a33355e957 # not required for public repos
+            flags: unittests # optional
+            name: unit-tests # optional
+            fail_ci_if_error: true 
+            verbose: true 
