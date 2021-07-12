@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: master
+          ref: main
       - uses: jwlawson/actions-setup-cmake@v1.9
         with:
           cmake-version: '3.3.0'
