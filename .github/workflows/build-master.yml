@@ -11,19 +11,19 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: master
+          ref: main
       - uses: jwlawson/actions-setup-cmake@v1.9
         with:
-          cmake-version: '3.3.0'
+          cmake-version: '3.20.x'
       - run: |
           wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key 2>/dev/null | sudo apt-key add -
           sudo add-apt-repository 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-12 main' -y
           sudo apt-get update -q
-          sudo apt-get install -y build-essential clang-12 lld-12 libc++-12-dev libc++abi-12-dev clang-tools-12 python
+          sudo apt-get install -y build-essential clang-11 lld-11 libc++-11-dev libc++abi-11-dev clang-tools-11 python libgl-dev
           sudo pip3 install wheel setuptools conan
-          cd $GITHUB_WORKSPACE
-          mkdir build
-          conan install .. -s cppstd=gnu17
+          cd $GITHUB_WORKSPACE 
+          cp $GITHUB_WORKSPACE/conan_profile ~/.conan/profiles
+          mkdir build && cd build && conan install .. -s cppstd=gnu17 -pr=conan_profile
           cmake ..
           make -j 4
           bin/tests
