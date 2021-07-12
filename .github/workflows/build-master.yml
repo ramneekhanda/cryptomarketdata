@@ -16,10 +16,11 @@ jobs:
         with:
           cmake-version: '3.20.x'
       - run: |
+          pip install gcovr
           wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key 2>/dev/null | sudo apt-key add -
           sudo add-apt-repository 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-12 main' -y
           sudo apt-get update -q
-          sudo apt-get install -y build-essential clang-11 lld-11 libc++-11-dev libc++abi-11-dev clang-tools-11 python libgl-dev lcov
+          sudo apt-get install -y build-essential clang-11 lld-11 libc++-11-dev libc++abi-11-dev clang-tools-11 python libgl-dev 
           sudo pip3 install wheel setuptools conan
           export CC=/usr/bin/clang
           export CXX=/usr/bin/clang++
@@ -29,9 +30,7 @@ jobs:
           make -j 4
           bin/tests
           cd CMakeFiles/tests.dir/tests
-          lcov --gcov /usr/bin/gcov --capture --directory . --output-file coverage.info
-          lcov --remove coverage.info '/usr/*' --output-file coverage.info # filter system-files 
-          lcov --list coverage.info 
+          gcovr -r ../../../../ . --output coverage.json --coveralls
       - uses: codecov/codecov-action@v1
         with:
             token: c8f0d69e-69c7-4916-aa65-50a33355e957 # not required for public repos
