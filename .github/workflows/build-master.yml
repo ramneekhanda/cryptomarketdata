@@ -20,7 +20,7 @@ jobs:
           wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key 2>/dev/null | sudo apt-key add -
           sudo add-apt-repository 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-12 main' -y
           sudo apt-get update -q
-          sudo apt-get install -y build-essential clang-11 lld-11 libc++-11-dev libc++abi-11-dev clang-tools-11 python libgl-dev lcov
+          sudo apt-get install -y build-essential clang-11 lld-11 libc++-11-dev libc++abi-11-dev clang-tools-11 python libgl-dev lcov gcov
           sudo pip3 install wheel setuptools conan
           export CC=/usr/bin/clang
           export CXX=/usr/bin/clang++
@@ -30,8 +30,8 @@ jobs:
           make -j 4
           bin/tests
           cd CMakeFiles/tests.dir/tests
-          lcov --capture --directory . --output-file coverage.info
-          lcov --remove coverage.info '/usr/*' --output-file coverage.info # filter system-files
+          lcov --gcov /usr/bin/gcov --capture --directory . --output-file coverage.info
+          lcov --remove coverage.info '/usr/*' --output-file coverage.info # filter system-files 
           lcov --list coverage.info 
       - uses: codecov/codecov-action@v1
         with:
