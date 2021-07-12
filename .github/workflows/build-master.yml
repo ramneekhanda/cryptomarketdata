@@ -21,7 +21,9 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install -y build-essential clang-11 lld-11 libc++-11-dev libc++abi-11-dev clang-tools-11 python libgl-dev
           sudo pip3 install wheel setuptools conan
-          cd $GITHUB_WORKSPACE && mkdir build && cd build && conan install .. -s cppstd=gnu17
+          cd $GITHUB_WORKSPACE 
+          cp $GITHUB_WORKSPACE/conan_profile ~/.conan/profiles
+          mkdir build && cd build && conan install .. -s cppstd=gnu17 -pr=conan_profile
           cmake ..
           make -j 4
           bin/tests
