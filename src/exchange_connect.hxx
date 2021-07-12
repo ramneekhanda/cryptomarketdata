@@ -43,25 +43,25 @@ namespace EC {
 
   // FIXME make this class threadsafe
   class ExchangeConnector {
-
+    shared_ptr<ASIOClient> client;
   protected:
-    ASIOClient client;
     std::shared_ptr<std::thread> feedThread;
-    static ExchangeMap exchangeMap;
     static ExchangeConnectorPtr self;
+
+    static ExchangeMap exchangeMap;
 
     /** @Brief Initializes the Exchange connector
      */
-    void init() {
+    void initInternal() {
+      client.reset(new ASIOClient());
 
       // disable logging completely
-      client.set_access_channels(websocketpp::log::alevel::none);
-      client.set_error_channels(websocketpp::log::elevel::none);
+      getClient().set_access_channels(websocketpp::log::alevel::none);
+      getClient().set_error_channels(websocketpp::log::elevel::none);
 
-      client.init_asio();
-      client.start_perpetual();
-
-      client.set_tls_init_handler([](std::weak_ptr<void>) -> ContextPtr {
+      getClient().init_asio();
+      getClient().start_perpetual();
+      getClient().set_tls_init_handler([](std::weak_ptr<void>) -> ContextPtr {
         ContextPtr ctx = std::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::sslv23);
 
         try {
@@ -74,24 +74,37 @@ namespace EC {
         }
         return ctx;
       });
-      feedThread.reset(new std::thread(&ASIOClient::run, &client));
+      feedThread.reset(new std::thread(&ASIOClient::run, client));
     }
 
     /** @Brief returns the client
      *  @return <b>{nil}</b> Return value description
      */
-    ASIOClient& getClient() {
-      return client;
+    inline ASIOClient& getClient() {
+      return *client;
     }
 
     /** @Brief Constructor will initialize and setup the websocketpp context and create a thread
      *  that the client will need to process incoming messages on
      */
     ExchangeConnector() {
-      init();
+
+    }
+
+    void shutdownInternal() {
+      for (auto &conn : exchangeMap) {
+        cout << "disconnecting " << conn.first << endl;
+        conn.second->disconnect();
+      }
+      getClient().stop_perpetual();
+      feedThread->join();
     }
 
   public:
+
+    void init() { initInternal(); }
+
+    void shutdown() { shutdownInternal(); }
 
     static ExchangeConnectorPtr getInstance() {
       if (!self) {
@@ -117,15 +130,7 @@ namespace EC {
         return false;
     }
 
-    void shutdown() {
-      for (auto &conn : exchangeMap) {
-        conn.second->disconnect();
-      }
-      exchangeMap.clear();
-      client.stop_perpetual();
-      client.stop();
-      feedThread->join();
-    }
+
     void subscribe(const std::string& exchange, const std::string& symbol, MD::Channel chan) {
       ExchangePtr &p = exchangeMap[exchange];
       // FIXME silent return

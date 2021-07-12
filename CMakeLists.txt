@@ -7,6 +7,8 @@ project(cdesk VERSION 1.0)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup(TARGETS)
 
+set(CMAKE_CXX_FLAGS "-O0 -Wall -Wextra")
+
 add_executable(cdesk
   src/main.cxx
 )
@@ -32,4 +34,5 @@ target_link_libraries(tests
   CONAN_PKG::fmt
   CONAN_PKG::rapidjson
   CONAN_PKG::date
-  CONAN_PKG::doctest)
+  CONAN_PKG::doctest
+  )
