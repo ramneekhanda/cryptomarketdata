@@ -47,15 +47,28 @@ namespace MD {
   struct Event {
     enum EventType {
       TRADE,
-      L2UPDATE
+      L2UPDATE,
+      CONNECT,
+      DISCONNECT
     } eventType;
-
-    union {
-      Trade t;
-      Level2 l2;
-    };
+    virtual ~Event() {}
   };
+
+  struct TradeEvent : public Event {
+      Trade t;
+  };
+
+  struct Level2Event : public Event {
+      Level2 l2;
+  };
+
+  struct ConnectEvent : public Event {};
+
+  struct DisconnectEvent : public Event {};
+
   typedef std::shared_ptr<Event> EventPtr;
+  typedef std::shared_ptr<TradeEvent> TradeEventPtr;
+  typedef std::shared_ptr<Level2Event> Level2EventPtr;
 
 }
 

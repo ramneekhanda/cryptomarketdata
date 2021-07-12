@@ -45,6 +45,13 @@ namespace EC {
       eventBus[topic]->get_subscriber().on_next(event);
     }
 
+    void publish(const std::string &exchange, MD::EventPtr event) {
+      std::string topic = exchange;
+
+      ensureTopicExists(topic);
+      eventBus[topic]->get_subscriber().on_next(event);
+    }
+
     template <typename T>
     std::function<void ()> subscribe(const std::string &exchange, const std::string& symbol, MD::Channel chan, T subscriber);
 

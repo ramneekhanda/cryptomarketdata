@@ -15,8 +15,9 @@ TEST_CASE("test coinbase btcusd feed") {
     std::condition_variable flag;
     bool data_received = false;
     EC::ExchangeConnector::getInstance()->init();
-    EC::ExchangeEventBus::getInstance()->subscribe("COINBASE", "BTC-USD", MD::Channel::TICKER, [&flag, &m, &data_received](MD::EventPtr p) {
+    EC::ExchangeEventBus::getInstance()->subscribe("COINBASE", "BTC-USD", MD::Channel::TICKER, [&flag, &m, &data_received](MD::EventPtr e) {
         using namespace std::chrono;
+        MD::TradeEventPtr p = std::dynamic_pointer_cast<MD::TradeEvent>(e);
         microseconds us = duration_cast<microseconds>(system_clock::now().time_since_epoch());
         std::unique_lock<std::mutex> lk(m);
         if (data_received) return; // dont assert more than once
@@ -40,7 +41,7 @@ TEST_CASE("test coinbase btcusd subscribe unsubscribe") {
     bool data_received = false;
     EC::ExchangeConnector::getInstance()->init();
 
-    auto unsubscribe = EC::ExchangeEventBus::getInstance()->subscribe("COINBASE", "BTC-USD", MD::Channel::TICKER, [&flag, &m, &flag_me, &data_received](MD::EventPtr p) {
+    auto unsubscribe = EC::ExchangeEventBus::getInstance()->subscribe("COINBASE", "BTC-USD", MD::Channel::TICKER, [&flag, &m, &flag_me, &data_received](MD::EventPtr) {
         std::unique_lock<std::mutex> lk(m);
         if (flag_me) {
             data_received = true;
@@ -57,6 +58,6 @@ TEST_CASE("test coinbase btcusd subscribe unsubscribe") {
     sleep(1); // give it time to rest
     lk.lock();
     flag_me = true;
-    REQUIRE(flag.wait_for(lk, 2s, [&data_received]{std::cout << "oops"; return data_received == true;}) == false);
+    REQUIRE(flag.wait_for(lk, 2s, [&data_received]{ return data_received == true; }) == false);
     EC::ExchangeConnector::getInstance()->shutdown();
 }

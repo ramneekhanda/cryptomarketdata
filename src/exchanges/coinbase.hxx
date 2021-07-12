@@ -97,7 +97,7 @@ namespace EC {
     void onTickerMessage() {
       if (!d.HasMember("price") || !d.HasMember("time") || !d.HasMember("last_size") || !d.HasMember("side") || !d.HasMember("best_bid") || !d.HasMember("best_ask"))
         return;
-      MD::EventPtr evPtr = MD::EventPtr(new MD::Event());
+      MD::TradeEventPtr evPtr = MD::TradeEventPtr(new MD::TradeEvent());
       const string symbol(d["product_id"].GetString());
 
       evPtr->eventType = MD::Event::EventType::TRADE;
