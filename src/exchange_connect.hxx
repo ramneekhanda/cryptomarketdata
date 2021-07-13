@@ -98,9 +98,6 @@ namespace EC {
       getClient().stop_perpetual();
       feedThread->join();
       self.reset(); //- we do not do this as this wou
-      for (auto &p : exchangeMap) {
-        std::cout << p.first << "-" << p.second << endl;
-      }
     }
 
     void shutdown() { shutdownInternal(); }
