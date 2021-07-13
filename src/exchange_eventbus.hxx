@@ -12,8 +12,8 @@
 namespace EC {
   using namespace std;
 
-  class ExchangeConnector;
-  typedef shared_ptr<ExchangeConnector> ExchangeConnectorPtr;
+  class ExchangeEventBus;
+  typedef shared_ptr<ExchangeEventBus> ExchangeEventBusPtr;
 
   class ExchangeEventBus {
     typedef rxcpp::subjects::subject<MD::EventPtr> EventSubject;
@@ -33,18 +33,31 @@ namespace EC {
 
     void unsubscribe(const std::string &exchange, const std::string& symbol, MD::Channel chan, rxcpp::composite_subscription& cs);
 
-  public:
     ExchangeEventBus() {
       this->exCon = ExchangeConnector::getInstance();
+      this->exCon->init();
+    }
+
+  public:
+
+    static ExchangeEventBusPtr getInstance() {
+      if (!self) {
+        self = ExchangeEventBusPtr(new ExchangeEventBus());
+      }
+      return self;
+    }
+
+    void shutdown() {
+      exCon->shutdown();
+      eventBus.clear();
+      exCon.reset();
+      self.reset();
     }
 
     void publish(const std::string &exchange, const std::string &symbol, MD::Channel chan, MD::EventPtr event) {
       std::string topic = exchange + "_" + symbol + "_" + MD::ChannelName[chan];
-
       ensureTopicExists(topic);
-      std::cout << "publishing to topic" << topic << std::endl;
       eventBus[topic]->get_subscriber().on_next(event);
-      std::cout << "message published to topic" << topic << std::endl;
     }
 
     void publish(const std::string &exchange, MD::EventPtr event) {
@@ -57,12 +70,6 @@ namespace EC {
     template <typename T>
     std::function<void ()> subscribe(const std::string &exchange, const std::string& symbol, MD::Channel chan, T subscriber);
 
-    static ExchangeEventBusPtr getInstance() {
-      if (!self) {
-        self = ExchangeEventBusPtr(new ExchangeEventBus());
-      }
-      return self;
-    }
   };
   ExchangeEventBusPtr ExchangeEventBus::self = nullptr;
 }

@@ -14,11 +14,11 @@
 namespace EC {
   using namespace std;
 
+  class ExchangeEventBus;
+
   class ExchangeConnector;
   typedef shared_ptr<ExchangeConnector> ExchangeConnectorPtr;
 
-  class ExchangeEventBus;
-  typedef shared_ptr<ExchangeEventBus> ExchangeEventBusPtr;
 
   typedef websocketpp::lib::asio::ssl::context SSLContext;
   typedef websocketpp::client<websocketpp::config::asio_tls_client> ASIOClient;
@@ -43,10 +43,11 @@ namespace EC {
   // FIXME make this class threadsafe
   class ExchangeConnector {
     shared_ptr<ASIOClient> client;
+    friend ExchangeEventBus;
+
   protected:
     std::shared_ptr<std::thread> feedThread;
     static ExchangeConnectorPtr self;
-
     static ExchangeMap exchangeMap;
 
     /** @Brief Initializes the Exchange connector
@@ -92,18 +93,21 @@ namespace EC {
 
     void shutdownInternal() {
       for (auto &conn : exchangeMap) {
-        cout << "disconnecting " << conn.first << endl;
         conn.second->disconnect();
       }
       getClient().stop_perpetual();
       feedThread->join();
+      self.reset(); //- we do not do this as this wou
+      for (auto &p : exchangeMap) {
+        std::cout << p.first << "-" << p.second << endl;
+      }
     }
 
-  public:
+    void shutdown() { shutdownInternal(); }
 
     void init() { initInternal(); }
 
-    void shutdown() { shutdownInternal(); }
+  public:
 
     static ExchangeConnectorPtr getInstance() {
       if (!self) {

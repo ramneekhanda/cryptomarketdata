@@ -14,7 +14,6 @@ TEST_CASE("test coinbase btcusd feed") {
     std::mutex m;
     std::condition_variable flag;
     bool data_received = false;
-    EC::ExchangeConnector::getInstance()->init();
     auto unsubscribe = EC::ExchangeEventBus::getInstance()->subscribe("COINBASE", "BTC-USD", MD::Channel::TICKER, [&flag, &m, &data_received](MD::EventPtr e) {
         using namespace std::chrono;
         MD::TradeEventPtr p = std::dynamic_pointer_cast<MD::TradeEvent>(e);
@@ -32,30 +31,24 @@ TEST_CASE("test coinbase btcusd feed") {
     std::unique_lock<std::mutex> lk(m);
     flag.wait(lk);
     unsubscribe();
-    EC::ExchangeConnector::getInstance()->shutdown();
+    EC::ExchangeEventBus::getInstance()->shutdown();
 }
 
 TEST_CASE("test coinbase btcusd subscribe unsubscribe") {
     std::mutex m;
     bool flag_me = true;
-    std::condition_variable flag;
     bool data_received = false;
-    EC::ExchangeConnector::getInstance()->init();
-    std::cout << "subscribing now" << std::endl;
+    std::condition_variable flag;
+
     auto unsubscribe = EC::ExchangeEventBus::getInstance()->subscribe("COINBASE", "BTC-USD", MD::Channel::TICKER, [&flag, &m, &flag_me, &data_received](MD::EventPtr) {
-        std::cout << "data received" << std::endl;
         std::unique_lock<std::mutex> lk(m);
         if (flag_me) {
-            std::cout << "notifying" << std::endl;
             data_received = true;
             flag.notify_all();
         }
     });
-    std::cout << "acq lock 1" << std::endl;
     std::unique_lock<std::mutex> lk(m);
-    std::cout << "acqrd lock 1" << std::endl;
     flag.wait(lk, [&data_received]{return data_received == true;});
-    std::cout << "first wait done" << std::endl;
 
     data_received = false;
     flag_me = false;
@@ -64,13 +57,9 @@ TEST_CASE("test coinbase btcusd subscribe unsubscribe") {
     unsubscribe();
     sleep(1); // give it time to rest
 
-    std::cout << "acq lock 2" << std::endl;
     lk.lock();
-    std::cout << "acqrd lock 2" << std::endl;
-
     flag_me = true;
     REQUIRE(flag.wait_for(lk, 2s, [&data_received]{ return data_received == true; }) == false);
-    std::cout << "second wait done" << std::endl;
 
-    EC::ExchangeConnector::getInstance()->shutdown();
+    EC::ExchangeEventBus::getInstance()->shutdown();
 }

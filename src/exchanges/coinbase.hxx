@@ -25,8 +25,8 @@ namespace EC {
 
     Document d;
     websocketpp::connection_hdl conHandle;
-    ExchangeConnectorPtr exCon = ExchangeConnector::getInstance();
-    ExchangeEventBusPtr evBus = ExchangeEventBus::getInstance();
+    ExchangeConnectorPtr exCon;
+    ExchangeEventBusPtr evBus;
     map<string, vector<MD::Channel>> subscriptions;
     bool isDisconnectIssued;
     std::mutex m;
@@ -49,8 +49,6 @@ namespace EC {
         if (ec) {
           cout << "Subscription send error on coinbase: " << ec.message() << endl;
         }
-        else cout << "Subscription sent on coinbase: " << endl;
-
       }
       subscriptions[product].push_back(chan);
     }
@@ -82,7 +80,6 @@ namespace EC {
 
     void onMessageHandler(websocketpp::connection_hdl, ASIOClient::message_ptr msg) {
       d.Parse(msg->get_payload().c_str());
-      cout << "message received on coinbase: " << msg->get_payload() << endl;
 
       if (d.HasMember("type") && std::string(d["type"].GetString()) == "ticker") {
         onTickerMessage();
@@ -99,7 +96,6 @@ namespace EC {
     void onTickerMessage() {
       if (!d.HasMember("price") || !d.HasMember("time") || !d.HasMember("last_size") || !d.HasMember("side") || !d.HasMember("best_bid") || !d.HasMember("best_ask"))
         return;
-      cout << "ticker message received on coinbase " << endl;
 
       MD::TradeEventPtr evPtr = MD::TradeEventPtr(new MD::TradeEvent());
       const string symbol(d["product_id"].GetString());
@@ -127,6 +123,8 @@ namespace EC {
 
     void connect() {
       ErrorCode ec;
+      exCon = ExchangeConnector::getInstance();
+      evBus = ExchangeEventBus::getInstance();
       std::unique_lock<std::mutex> lk(m);
       isDisconnectIssued = false;
       if (isConnectedOrConnecting())
