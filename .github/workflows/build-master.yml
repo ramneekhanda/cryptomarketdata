@@ -31,6 +31,7 @@ jobs:
           bin/tests
           cd CMakeFiles/tests.dir/tests
           gcovr -r ../../../../ . --output coverage.json --coveralls
+          ls -ltr
           echo "Coverage report==================================="
           cat coverage.json
       - uses: codecov/codecov-action@v1
