@@ -42,6 +42,7 @@ namespace EC {
       std::string topic = exchange + "_" + symbol + "_" + MD::ChannelName[chan];
 
       ensureTopicExists(topic);
+      std::cout << "publishing to topic" << topic << std::endl;
       eventBus[topic]->get_subscriber().on_next(event);
       std::cout << "message published to topic" << topic << std::endl;
     }
