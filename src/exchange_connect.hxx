@@ -61,7 +61,7 @@ namespace EC {
       getClient().init_asio();
       getClient().start_perpetual();
       getClient().set_tls_init_handler([](std::weak_ptr<void>) -> ContextPtr {
-        ContextPtr ctx = std::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::sslv23);
+      ContextPtr ctx = std::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::sslv23);
 
         try {
           ctx->set_options(SSLContext::default_workarounds |
