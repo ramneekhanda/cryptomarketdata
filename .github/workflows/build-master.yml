@@ -16,10 +16,11 @@ jobs:
         with:
           cmake-version: '3.20.x'
       - run: |
+          pip install gcovr
           wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key 2>/dev/null | sudo apt-key add -
           sudo add-apt-repository 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-12 main' -y
           sudo apt-get update -q
-          sudo apt-get install -y build-essential clang-11 lld-11 libc++-11-dev libc++abi-11-dev clang-tools-11 python libgl-dev
+          sudo apt-get install -y build-essential clang-11 lld-11 libc++-11-dev libc++abi-11-dev clang-tools-11 python libgl-dev 
           sudo pip3 install wheel setuptools conan
           export CC=/usr/bin/clang
           export CXX=/usr/bin/clang++
@@ -28,10 +29,17 @@ jobs:
           cmake ..
           make -j 4
           bin/tests
+          cd CMakeFiles/tests.dir/tests
+          ls -laR $GITHUB_WORKSPACE
+          gcov main.cxx.gcda --branch-counts --branch-probabilities --preserve-paths
+          ls -ltr
+          echo "Coverage report==================================="
+          cat coverage.json
       - uses: codecov/codecov-action@v1
         with:
-            token: c8f0d69e-69c7-4916-aa65-50a33355e957 # not required for public repos
+            token: 4837ea79-b0b6-49e7-acef-07625b4d7c28 # not required for public repos
             flags: unittests # optional
             name: unit-tests # optional
             fail_ci_if_error: true 
-            verbose: true 
+            files: build/CMakeFiles/tests.dir/tests/coverage.json
+            verbose: false 
