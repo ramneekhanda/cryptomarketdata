@@ -31,7 +31,7 @@ jobs:
           bin/tests
           cd CMakeFiles/tests.dir/tests
           ls -laR $GITHUB_WORKSPACE
-          gcovr -v -r $GITHUB_WORKSPACE  . --output coverage.json --coveralls
+          gcov main.cxx.gcda --branch-counts --branch-probabilities --preserve-paths
           ls -ltr
           echo "Coverage report==================================="
           cat coverage.json
