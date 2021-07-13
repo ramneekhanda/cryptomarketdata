@@ -40,7 +40,7 @@ TEST_CASE("test coinbase btcusd subscribe unsubscribe") {
     std::condition_variable flag;
     bool data_received = false;
     EC::ExchangeConnector::getInstance()->init();
-
+    std::cout << "subscribing now" << std::endl;
     auto unsubscribe = EC::ExchangeEventBus::getInstance()->subscribe("COINBASE", "BTC-USD", MD::Channel::TICKER, [&flag, &m, &flag_me, &data_received](MD::EventPtr) {
         std::unique_lock<std::mutex> lk(m);
         if (flag_me) {
@@ -48,16 +48,26 @@ TEST_CASE("test coinbase btcusd subscribe unsubscribe") {
             flag.notify_one();
         }
     });
+    std::cout << "acq lock 1" << std::endl;
     std::unique_lock<std::mutex> lk(m);
+    std::cout << "acqrd lock 1" << std::endl;
     flag.wait(lk, [&data_received]{return data_received == true;});
+    std::cout << "first wait done" << std::endl;
+
     data_received = false;
     flag_me = false;
     lk.unlock();
 
     unsubscribe();
     sleep(1); // give it time to rest
+
+    std::cout << "acq lock 2" << std::endl;
     lk.lock();
+    std::cout << "acqrd lock 2" << std::endl;
+
     flag_me = true;
     REQUIRE(flag.wait_for(lk, 2s, [&data_received]{ return data_received == true; }) == false);
+    std::cout << "second wait done" << std::endl;
+
     EC::ExchangeConnector::getInstance()->shutdown();
 }
