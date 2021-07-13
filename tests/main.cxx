@@ -15,7 +15,7 @@ TEST_CASE("test coinbase btcusd feed") {
     std::condition_variable flag;
     bool data_received = false;
     EC::ExchangeConnector::getInstance()->init();
-    EC::ExchangeEventBus::getInstance()->subscribe("COINBASE", "BTC-USD", MD::Channel::TICKER, [&flag, &m, &data_received](MD::EventPtr e) {
+    auto unsubscribe = EC::ExchangeEventBus::getInstance()->subscribe("COINBASE", "BTC-USD", MD::Channel::TICKER, [&flag, &m, &data_received](MD::EventPtr e) {
         using namespace std::chrono;
         MD::TradeEventPtr p = std::dynamic_pointer_cast<MD::TradeEvent>(e);
         microseconds us = duration_cast<microseconds>(system_clock::now().time_since_epoch());
@@ -31,6 +31,7 @@ TEST_CASE("test coinbase btcusd feed") {
 
     std::unique_lock<std::mutex> lk(m);
     flag.wait(lk);
+    unsubscribe();
     EC::ExchangeConnector::getInstance()->shutdown();
 }
 
