@@ -43,6 +43,7 @@ namespace EC {
 
       ensureTopicExists(topic);
       eventBus[topic]->get_subscriber().on_next(event);
+      std::cout << "message published to topic" << topic << std::endl;
     }
 
     void publish(const std::string &exchange, MD::EventPtr event) {
