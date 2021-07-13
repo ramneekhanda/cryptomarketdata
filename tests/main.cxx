@@ -42,10 +42,12 @@ TEST_CASE("test coinbase btcusd subscribe unsubscribe") {
     EC::ExchangeConnector::getInstance()->init();
     std::cout << "subscribing now" << std::endl;
     auto unsubscribe = EC::ExchangeEventBus::getInstance()->subscribe("COINBASE", "BTC-USD", MD::Channel::TICKER, [&flag, &m, &flag_me, &data_received](MD::EventPtr) {
+        std::cout << "data received" << std::endl;
         std::unique_lock<std::mutex> lk(m);
         if (flag_me) {
+            std::cout << "notifying" << std::endl;
             data_received = true;
-            flag.notify_one();
+            flag.notify_all();
         }
     });
     std::cout << "acq lock 1" << std::endl;
