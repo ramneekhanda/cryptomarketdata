@@ -30,7 +30,7 @@ jobs:
           make -j 4
           bin/tests
           cd CMakeFiles/tests.dir/tests
-          gcovr -r $GITHUB_WORKSPACE  . --output coverage.json --coveralls
+          gcovr -v -r $GITHUB_WORKSPACE  . --output coverage.json --coveralls
           ls -ltr
           echo "Coverage report==================================="
           cat coverage.json
