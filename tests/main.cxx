@@ -33,7 +33,7 @@ TEST_CASE("test coinbase btcusd feed") {
     flag.wait(lk);
     EC::ExchangeConnector::getInstance()->shutdown();
 }
-/*
+
 TEST_CASE("test coinbase btcusd subscribe unsubscribe") {
     std::mutex m;
     bool flag_me = true;
@@ -60,4 +60,4 @@ TEST_CASE("test coinbase btcusd subscribe unsubscribe") {
     flag_me = true;
     REQUIRE(flag.wait_for(lk, 2s, [&data_received]{ return data_received == true; }) == false);
     EC::ExchangeConnector::getInstance()->shutdown();
-}*/
+}
