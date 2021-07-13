@@ -31,6 +31,7 @@ jobs:
           bin/tests
           cd CMakeFiles/tests.dir/tests
           gcovr -r ../../../../ . --output coverage.json --coveralls
+          cat coverage.json
       - uses: codecov/codecov-action@v1
         with:
             token: 4837ea79-b0b6-49e7-acef-07625b4d7c28 # not required for public repos
