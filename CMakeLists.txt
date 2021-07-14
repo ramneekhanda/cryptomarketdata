@@ -11,10 +11,9 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 
 # test cases!
 add_executable(tests tests/main.cxx)
-target_compile_options(tests PRIVATE -fprofile-arcs -ftest-coverage -fprofile-generate -Wthread-safety)
+target_compile_options(tests PRIVATE -fprofile-arcs -ftest-coverage -fprofile-generate)
 
 add_executable(tests-nocover tests/main.cxx)
-target_compile_options(tests PRIVATE -Wthread-safety)
 
 target_link_libraries(tests
   CONAN_PKG::rxcpp

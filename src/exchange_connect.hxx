@@ -38,7 +38,6 @@ namespace EC {
   typedef unique_ptr<Exchange> ExchangePtr;
   typedef unordered_map<std::string, unique_ptr<Exchange>> ExchangeMap;
 
-  // FIXME make this class threadsafe
   class ExchangeConnector {
     shared_ptr<ASIOClient> client;
     friend ExchangeEventBus;
