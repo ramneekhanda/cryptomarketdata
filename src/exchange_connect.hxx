@@ -32,6 +32,7 @@ namespace EC {
       virtual void connect() = 0;
       virtual void disconnect() = 0;
       virtual void subscribe(const string&, MD::Channel) = 0;
+      virtual void unsubscribe(const string&, MD::Channel) = 0;
       virtual std::string const& getName() = 0;
       virtual ~Exchange() {}
   };
@@ -139,6 +140,16 @@ namespace EC {
       // FIXME silent return
       if (p) {
         p->subscribe(symbol, chan);
+      }
+    }
+
+    void unsubscribe(const std::string& exchange, const std::string& symbol, MD::Channel chan) {
+      std::unique_lock<mutex> lk(muExchangeMap);
+      ExchangePtr &p = exchangeMap[exchange];
+      lk.unlock();
+      // FIXME silent return
+      if (p) {
+        p->unsubscribe(symbol, chan);
       }
     }
 

@@ -141,6 +141,11 @@ void EC::ExchangeEventBus::unsubscribe(const std::string &exchange, const std::s
   unique_lock<mutex> lk(muEventBus);
   EventSubjectPtr sp = eventBus[topic];
   cs.unsubscribe();
+  if (!sp->has_observers()) {
+    auto search = eventBus.find(topic);
+    eventBus.erase(search);
+    exCon->unsubscribe(exchange, symbol, chan);
+  }
 }
 
 #endif // EXCHANGE_EVENTBUS_H_
