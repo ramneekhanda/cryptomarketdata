@@ -7,7 +7,6 @@
 
 #include <websocketpp/config/asio_client.hpp>
 #include <websocketpp/client.hpp>
-#include <rxcpp/rx.hpp>
 
 #include "marketdata.hxx"
 
@@ -18,7 +17,6 @@ namespace EC {
 
   class ExchangeConnector;
   typedef shared_ptr<ExchangeConnector> ExchangeConnectorPtr;
-
 
   typedef websocketpp::lib::asio::ssl::context SSLContext;
   typedef websocketpp::client<websocketpp::config::asio_tls_client> ASIOClient;
@@ -44,11 +42,11 @@ namespace EC {
   class ExchangeConnector {
     shared_ptr<ASIOClient> client;
     friend ExchangeEventBus;
-
+    static mutex muExchangeMap;
   protected:
     std::shared_ptr<std::thread> feedThread;
     static ExchangeConnectorPtr self;
-    static ExchangeMap exchangeMap;
+    static ExchangeMap exchangeMap; // guarded by muExchangeMap
 
     /** @Brief Initializes the Exchange connector
      */
@@ -92,6 +90,7 @@ namespace EC {
     }
 
     void shutdownInternal() {
+      std::unique_lock<mutex> lk(muExchangeMap);
       for (auto &conn : exchangeMap) {
         conn.second->disconnect();
       }
@@ -114,6 +113,7 @@ namespace EC {
     }
 
     static int registerExchange(const std::string& name, ExchangePtr && exchange) {
+      std::unique_lock<mutex> lk(muExchangeMap);
       exchangeMap[name] = std::move(exchange);
       cout << "registered exchange with name - " << name << endl;
       return 0;
@@ -121,7 +121,9 @@ namespace EC {
 
     bool ensureConnected(const std::string& exchange) {
       // FIXME unnecessary allocation
+      std::unique_lock<mutex> lk(muExchangeMap);
       ExchangePtr &p = exchangeMap[exchange];
+      lk.unlock();
       if (p) {
         p->connect();
         return true;
@@ -132,7 +134,9 @@ namespace EC {
 
 
     void subscribe(const std::string& exchange, const std::string& symbol, MD::Channel chan) {
+      std::unique_lock<mutex> lk(muExchangeMap);
       ExchangePtr &p = exchangeMap[exchange];
+      lk.unlock();
       // FIXME silent return
       if (p) {
         p->subscribe(symbol, chan);
@@ -156,6 +160,7 @@ namespace EC {
     }
   };
 
+  mutex ExchangeConnector::muExchangeMap;
   ExchangeConnectorPtr ExchangeConnector::self = nullptr;
   ExchangeMap ExchangeConnector::exchangeMap;
 }
