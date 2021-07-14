@@ -14,6 +14,14 @@ TEST_CASE("test coinbase btcusd feed") {
     std::mutex m;
     std::condition_variable flag;
     bool data_received = false;
+    int connect_count = 0;
+    int disconnect_count = 0;
+
+    auto unsubscribeExEvents = EC::ExchangeEventBus::getInstance()->subscribe("COINBASE", [&connect_count, &disconnect_count](MD::EventPtr e) {
+        if (e->eventType == MD::Event::CONNECT) connect_count++;
+        if (e->eventType == MD::Event::DISCONNECT) disconnect_count++;
+    });
+
     auto unsubscribe = EC::ExchangeEventBus::getInstance()->subscribe("COINBASE", "BTC-USD", MD::Channel::TICKER, [&flag, &m, &data_received](MD::EventPtr e) {
         using namespace std::chrono;
         MD::TradeEventPtr p = std::dynamic_pointer_cast<MD::TradeEvent>(e);
@@ -32,6 +40,8 @@ TEST_CASE("test coinbase btcusd feed") {
     flag.wait(lk);
     unsubscribe();
     EC::ExchangeEventBus::getInstance()->shutdown();
+    REQUIRE(connect_count == 1);
+    REQUIRE(disconnect_count == 1);
 }
 
 TEST_CASE("test coinbase btcusd subscribe unsubscribe") {

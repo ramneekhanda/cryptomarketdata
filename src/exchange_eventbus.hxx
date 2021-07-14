@@ -35,6 +35,8 @@ namespace EC {
 
     void unsubscribe(const std::string &exchange, const std::string& symbol, MD::Channel chan, rxcpp::composite_subscription& cs);
 
+    void unsubscribe(const std::string &exchange, rxcpp::composite_subscription& cs);
+
     ExchangeEventBus() {
       this->exCon = ExchangeConnector::getInstance();
       this->exCon->init();
@@ -83,6 +85,9 @@ namespace EC {
     template <typename T>
     std::function<void ()> subscribe(const std::string &exchange, const std::string& symbol, MD::Channel chan, T subscriber);
 
+    template <typename T>
+    std::function<void ()> subscribe(const std::string &exchange, T subscriber);
+
   };
   ExchangeEventBusPtr ExchangeEventBus::self = nullptr;
 }
@@ -103,7 +108,31 @@ std::function<void ()> EC::ExchangeEventBus::subscribe(const std::string &exchan
   unique_lock<mutex> lk(muEventBus);
   auto observable = eventBus[topic]->get_observable();
   auto subscription = observable.subscribe(subscriber);
-  return std::bind(&EC::ExchangeEventBus::unsubscribe, this, exchange, symbol, chan, subscription);
+  return std::bind(static_cast<void(EC::ExchangeEventBus::*)(const std::string&, const std::string&, MD::Channel, rxcpp::composite_subscription&)>(&EC::ExchangeEventBus::unsubscribe), this, exchange, symbol, chan, subscription);
+}
+
+template <typename T>
+std::function<void ()> EC::ExchangeEventBus::subscribe(const std::string &exchange, T subscriber)  {
+  std::string topic = exchange;
+
+  // FIXME silent return should be avoided
+  if (!exCon->ensureConnected(exchange)) {
+    return &noop;
+  }
+  ensureTopicExists(topic);
+
+  unique_lock<mutex> lk(muEventBus);
+  auto observable = eventBus[topic]->get_observable();
+  auto subscription = observable.subscribe(subscriber);
+  return std::bind(static_cast<void(EC::ExchangeEventBus::*)(const std::string&, rxcpp::composite_subscription&)>(&EC::ExchangeEventBus::unsubscribe), this, exchange, subscription);
+}
+
+void EC::ExchangeEventBus::unsubscribe(const std::string &exchange, rxcpp::composite_subscription& cs) {
+  std::string topic = exchange;
+
+  unique_lock<mutex> lk(muEventBus);
+  EventSubjectPtr sp = eventBus[topic];
+  cs.unsubscribe();
 }
 
 void EC::ExchangeEventBus::unsubscribe(const std::string &exchange, const std::string& symbol, MD::Channel chan, rxcpp::composite_subscription& cs) {

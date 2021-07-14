@@ -56,15 +56,24 @@ namespace MD {
 
   struct TradeEvent : public Event {
       Trade t;
+
+      TradeEvent() { eventType = TRADE; }
+
   };
 
   struct Level2Event : public Event {
       Level2 l2;
+
+      Level2Event() { eventType = L2UPDATE; }
   };
 
-  struct ConnectEvent : public Event {};
+  struct ConnectEvent : public Event {
+      ConnectEvent() { eventType = CONNECT; }
+  };
 
-  struct DisconnectEvent : public Event {};
+  struct DisconnectEvent : public Event {
+      DisconnectEvent() { eventType = DISCONNECT; }
+  };
 
   typedef std::shared_ptr<Event> EventPtr;
   typedef std::shared_ptr<TradeEvent> TradeEventPtr;
