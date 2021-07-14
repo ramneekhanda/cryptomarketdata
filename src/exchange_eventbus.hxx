@@ -50,9 +50,10 @@ namespace EC {
     }
 
     void shutdown() {
-      unique_lock<mutex> lk(muEventBus);
       exCon->shutdown();
+      unique_lock<mutex> lk(muEventBus);
       eventBus.clear();
+      lk.unlock();
       exCon.reset();
       self.reset();
     }

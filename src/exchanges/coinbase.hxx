@@ -67,7 +67,8 @@ namespace EC {
     }
 
     void openHandler(websocketpp::connection_hdl) {
-      cout << "COINBASE: connection is now open" << endl;
+
+      evBus->publish(getName(), MD::EventPtr(new MD::ConnectEvent()));
       for (auto product_chan : subscriptions) {
         for (auto chan : product_chan.second)
           this->subscribeInternal(product_chan.first, chan);
@@ -75,7 +76,7 @@ namespace EC {
     }
 
     void closeHandler(websocketpp::connection_hdl) {
-      cout << "COINBASE: connection closed" << endl;
+      evBus->publish(getName(), MD::EventPtr(new MD::DisconnectEvent()));
     }
 
     void onMessageHandler(websocketpp::connection_hdl, ASIOClient::message_ptr msg) {
