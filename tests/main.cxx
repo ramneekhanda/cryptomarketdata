@@ -10,7 +10,40 @@
 using namespace std::chrono_literals;
 
 TEST_CASE("test coinbase btcusd feed") {
+    std::mutex m;
+    std::condition_variable flag;
+    bool data_received = false;
+    int connect_count = 0;
+    int disconnect_count = 0;
 
+    auto unsubscribeExEvents = EC::ExchangeEventBus::getInstance()->subscribe("COINBASE", [&connect_count, &disconnect_count](MD::EventPtr e) {
+        if (e->eventType == MD::Event::CONNECT) connect_count++;
+        if (e->eventType == MD::Event::DISCONNECT) disconnect_count++;
+    });
+
+    auto unsubscribe = EC::ExchangeEventBus::getInstance()->subscribe("COINBASE", "BTC-USD", MD::Channel::TICKER, [&flag, &m, &data_received](MD::EventPtr e) {
+        using namespace std::chrono;
+        MD::TradeEventPtr p = std::dynamic_pointer_cast<MD::TradeEvent>(e);
+        microseconds us = duration_cast<microseconds>(system_clock::now().time_since_epoch());
+        std::unique_lock<std::mutex> lk(m);
+        if (data_received) return; // dont assert more than once
+        data_received = true;
+        REQUIRE(p->t.price > 0);
+        REQUIRE(p->t.volume > 0.);
+        WARN(us.count() < (2000000 + p->t.time));
+        REQUIRE(p->t.ask > p->t.bid);
+        flag.notify_one();
+    });
+
+    std::unique_lock<std::mutex> lk(m);
+    flag.wait(lk);
+    unsubscribe();
+    EC::ExchangeEventBus::getInstance()->shutdown();
+    REQUIRE(connect_count == 1);
+    REQUIRE(disconnect_count == 1);
+}
+
+TEST_CASE("test coinbase btcusd feed") {
     std::mutex m;
     std::condition_variable flag;
     bool data_received = false;

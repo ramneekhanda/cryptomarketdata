@@ -27,7 +27,7 @@ namespace EC {
     websocketpp::connection_hdl conHandle;
     ExchangeConnectorPtr exCon;
     ExchangeEventBusPtr evBus;
-    map<string, vector<MD::Channel>> subscriptions;
+    map<MD::Channel, set<string>> subscriptions;
     bool isDisconnectIssued;
     std::mutex m;
 
@@ -50,7 +50,7 @@ namespace EC {
           cout << "Subscription send error on coinbase: " << ec.message() << endl;
         }
       }
-      subscriptions[product].push_back(chan);
+      subscriptions[chan].insert(product);
     }
 
     void unsubscribeInternal(const string& product, MD::Channel chan) {
@@ -63,15 +63,16 @@ namespace EC {
           cout << "Unsubscription send error on coinbase: " << ec.message() << endl;
         }
       }
-      remove_if(subscriptions[product].begin(), subscriptions[product].end(), [chan](auto val){ return val == chan; });
+      subscriptions[chan].erase(product);
+      //remove_if(subscriptions[chan].begin(), subscriptions[chan].end(), [product](auto val){ return val == product; });
     }
 
     void openHandler(websocketpp::connection_hdl) {
 
       evBus->publish(getName(), MD::EventPtr(new MD::ConnectEvent()));
-      for (auto product_chan : subscriptions) {
-        for (auto chan : product_chan.second)
-          this->subscribeInternal(product_chan.first, chan);
+      for (auto chan_prod : subscriptions) {
+        for (auto prod : chan_prod.second)
+          this->subscribeInternal(prod, chan_prod.first);
       }
     }
 
@@ -91,7 +92,35 @@ namespace EC {
     }
 
     void onSubscriptionsMessage() {
+      std::set<string> symbolsSub, symbolsUnsub;
 
+      if (!d.HasMember("channels") || !d["channels"].IsArray())
+        return;
+      const Value &chans = d["channels"];
+      for (auto &item : chans.GetArray()) {
+        if (item.IsObject() && item.HasMember("name") && item["name"].IsString()  && item.HasMember("product_ids") && item["product_ids"].IsArray()) {
+          if (item["name"] == "ticker") {
+            set<string> ticker_set;
+            auto &ticker_arr = item["product_ids"];
+            auto &ticker_subs = subscriptions[MD::Channel::TICKER];
+            for (auto &t : ticker_arr.GetArray()) ticker_set.insert(t.GetString());
+            for (auto &tSym : ticker_subs) {
+              if (ticker_set.find(tSym) == ticker_set.end()) {
+                symbolsSub.insert(tSym);
+              }
+            }
+            for (auto &tSym : ticker_set) {
+              if (ticker_subs.find(tSym) == ticker_subs.end()) {
+                symbolsUnsub.insert(tSym);
+              }
+            }
+          }
+        }
+      }
+      for (auto &s : symbolsSub)
+        subscribeInternal(s, MD::Channel::TICKER);
+      for (auto &s : symbolsUnsub)
+        unsubscribe(s, MD::Channel::TICKER);
     }
 
     void onTickerMessage() {
@@ -158,16 +187,16 @@ namespace EC {
     }
 
     void subscribe(const string& product, MD::Channel chan) {
-      if (subscriptions.find(product) != subscriptions.end()
-          && std::find(subscriptions[product].begin(), subscriptions[product].end(), chan) != subscriptions[product].end()) {
+      if (subscriptions.find(chan) != subscriptions.end()
+          && std::find(subscriptions[chan].begin(), subscriptions[chan].end(), product) != subscriptions[chan].end()) {
           return; // we are already subscribed
       }
       subscribeInternal(product, chan);
     }
 
     void unsubscribe(const string& product, MD::Channel chan) {
-      if (subscriptions.find(product) == subscriptions.end()
-          || find(subscriptions[product].begin(), subscriptions[product].end(), chan) == subscriptions[product].end()) {
+      if (subscriptions.find(chan) == subscriptions.end()
+          || find(subscriptions[chan].begin(), subscriptions[chan].end(), product) == subscriptions[chan].end()) {
           return; // we are already unsubscribed
       }
       unsubscribeInternal(product, chan);
