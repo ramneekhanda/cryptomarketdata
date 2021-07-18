@@ -1,0 +1,6 @@
+[submodule "examples/tradeplt/imgui"]
+	path = examples/tradeplt/imgui
+	url = https://github.com/ocornut/imgui
+[submodule "examples/tradeplt/implot"]
+	path = examples/tradeplt/implot
+	url = https://github.com/epezent/implot

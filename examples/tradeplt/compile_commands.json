@@ -1,0 +1,57 @@
+[
+{
+  "directory": "/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++ -DGL_SILENCE_DEPRECATION=1 -I/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui -I/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/implot -isystem /Users/ramneekhanda/.conan/data/glfw/3.3.4/_/_/package/af97d2351ef4899e78e868acc604bad881b37030/include  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX11.3.sdk -std=gnu++11 -o CMakeFiles/testplt.dir/main.cxx.o -c /Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/main.cxx",
+  "file": "/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/main.cxx"
+},
+{
+  "directory": "/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++ -DGL_SILENCE_DEPRECATION=1 -I/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui -I/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/implot -isystem /Users/ramneekhanda/.conan/data/glfw/3.3.4/_/_/package/af97d2351ef4899e78e868acc604bad881b37030/include  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX11.3.sdk -std=gnu++11 -o CMakeFiles/testplt.dir/imgui/backends/imgui_impl_glfw.cpp.o -c /Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui/backends/imgui_impl_glfw.cpp",
+  "file": "/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui/backends/imgui_impl_glfw.cpp"
+},
+{
+  "directory": "/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++ -DGL_SILENCE_DEPRECATION=1 -I/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui -I/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/implot -isystem /Users/ramneekhanda/.conan/data/glfw/3.3.4/_/_/package/af97d2351ef4899e78e868acc604bad881b37030/include  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX11.3.sdk -std=gnu++11 -o CMakeFiles/testplt.dir/imgui/backends/imgui_impl_opengl2.cpp.o -c /Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui/backends/imgui_impl_opengl2.cpp",
+  "file": "/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui/backends/imgui_impl_opengl2.cpp"
+},
+{
+  "directory": "/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++ -DGL_SILENCE_DEPRECATION=1 -I/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui -I/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/implot -isystem /Users/ramneekhanda/.conan/data/glfw/3.3.4/_/_/package/af97d2351ef4899e78e868acc604bad881b37030/include  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX11.3.sdk -std=gnu++11 -o CMakeFiles/testplt.dir/imgui/imgui.cpp.o -c /Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui/imgui.cpp",
+  "file": "/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui/imgui.cpp"
+},
+{
+  "directory": "/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++ -DGL_SILENCE_DEPRECATION=1 -I/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui -I/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/implot -isystem /Users/ramneekhanda/.conan/data/glfw/3.3.4/_/_/package/af97d2351ef4899e78e868acc604bad881b37030/include  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX11.3.sdk -std=gnu++11 -o CMakeFiles/testplt.dir/imgui/imgui_draw.cpp.o -c /Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui/imgui_draw.cpp",
+  "file": "/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui/imgui_draw.cpp"
+},
+{
+  "directory": "/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++ -DGL_SILENCE_DEPRECATION=1 -I/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui -I/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/implot -isystem /Users/ramneekhanda/.conan/data/glfw/3.3.4/_/_/package/af97d2351ef4899e78e868acc604bad881b37030/include  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX11.3.sdk -std=gnu++11 -o CMakeFiles/testplt.dir/imgui/imgui_tables.cpp.o -c /Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui/imgui_tables.cpp",
+  "file": "/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui/imgui_tables.cpp"
+},
+{
+  "directory": "/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++ -DGL_SILENCE_DEPRECATION=1 -I/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui -I/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/implot -isystem /Users/ramneekhanda/.conan/data/glfw/3.3.4/_/_/package/af97d2351ef4899e78e868acc604bad881b37030/include  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX11.3.sdk -std=gnu++11 -o CMakeFiles/testplt.dir/imgui/imgui_widgets.cpp.o -c /Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui/imgui_widgets.cpp",
+  "file": "/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui/imgui_widgets.cpp"
+},
+{
+  "directory": "/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++ -DGL_SILENCE_DEPRECATION=1 -I/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui -I/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/implot -isystem /Users/ramneekhanda/.conan/data/glfw/3.3.4/_/_/package/af97d2351ef4899e78e868acc604bad881b37030/include  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX11.3.sdk -std=gnu++11 -o CMakeFiles/testplt.dir/imgui/imgui_demo.cpp.o -c /Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui/imgui_demo.cpp",
+  "file": "/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui/imgui_demo.cpp"
+},
+{
+  "directory": "/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++ -DGL_SILENCE_DEPRECATION=1 -I/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui -I/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/implot -isystem /Users/ramneekhanda/.conan/data/glfw/3.3.4/_/_/package/af97d2351ef4899e78e868acc604bad881b37030/include  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX11.3.sdk -std=gnu++11 -o CMakeFiles/testplt.dir/implot/implot_demo.cpp.o -c /Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/implot/implot_demo.cpp",
+  "file": "/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/implot/implot_demo.cpp"
+},
+{
+  "directory": "/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++ -DGL_SILENCE_DEPRECATION=1 -I/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui -I/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/implot -isystem /Users/ramneekhanda/.conan/data/glfw/3.3.4/_/_/package/af97d2351ef4899e78e868acc604bad881b37030/include  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX11.3.sdk -std=gnu++11 -o CMakeFiles/testplt.dir/implot/implot.cpp.o -c /Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/implot/implot.cpp",
+  "file": "/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/implot/implot.cpp"
+},
+{
+  "directory": "/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++ -DGL_SILENCE_DEPRECATION=1 -I/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/imgui -I/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/implot -isystem /Users/ramneekhanda/.conan/data/glfw/3.3.4/_/_/package/af97d2351ef4899e78e868acc604bad881b37030/include  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX11.3.sdk -std=gnu++11 -o CMakeFiles/testplt.dir/implot/implot_items.cpp.o -c /Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/implot/implot_items.cpp",
+  "file": "/Users/ramneekhanda/workspace/cryptoconnectpp/examples/tradeplt/implot/implot_items.cpp"
+}
+]
