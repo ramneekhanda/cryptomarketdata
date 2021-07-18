@@ -7,6 +7,8 @@
 #include "../src/exchange_connect.hxx"
 #include "../src/exchange_eventbus.hxx"
 #include "../src/exchanges/coinbase.hxx"
+#include "../src/exchanges/binance.hxx"
+
 using namespace std::chrono_literals;
 
 TEST_CASE("test coinbase btcusd feed") {
@@ -43,19 +45,21 @@ TEST_CASE("test coinbase btcusd feed") {
     REQUIRE(disconnect_count == 1);
 }
 
-TEST_CASE("test coinbase btcusd feed") {
+TEST_CASE("test binance btcusdt feed") {
     std::mutex m;
     std::condition_variable flag;
     bool data_received = false;
     int connect_count = 0;
     int disconnect_count = 0;
 
-    auto unsubscribeExEvents = EC::ExchangeEventBus::getInstance()->subscribe("COINBASE", [&connect_count, &disconnect_count](MD::EventPtr e) {
+    auto unsubscribeExEvents = EC::ExchangeEventBus::getInstance()->subscribe("BINANCE", [&connect_count, &disconnect_count](MD::EventPtr e) {
+        std::cout << "connect_disconnect" << std::endl;
         if (e->eventType == MD::Event::CONNECT) connect_count++;
         if (e->eventType == MD::Event::DISCONNECT) disconnect_count++;
     });
 
-    auto unsubscribe = EC::ExchangeEventBus::getInstance()->subscribe("COINBASE", "BTC-USD", MD::Channel::TICKER, [&flag, &m, &data_received](MD::EventPtr e) {
+    auto unsubscribe = EC::ExchangeEventBus::getInstance()->subscribe("BINANCE", "BTCUSDT", MD::Channel::TICKER, [&flag, &m, &data_received](MD::EventPtr e) {
+        std::cout << "received binance message" << std::endl;
         using namespace std::chrono;
         MD::TradeEventPtr p = std::dynamic_pointer_cast<MD::TradeEvent>(e);
         microseconds us = duration_cast<microseconds>(system_clock::now().time_since_epoch());
@@ -65,7 +69,9 @@ TEST_CASE("test coinbase btcusd feed") {
         REQUIRE(p->t.price > 0);
         REQUIRE(p->t.volume > 0.);
         WARN(us.count() < (2000000 + p->t.time));
-        REQUIRE(p->t.ask > p->t.bid);
+        REQUIRE(p->t.ask == 0);
+        REQUIRE(p->t.bid == 0);
+
         flag.notify_one();
     });
 

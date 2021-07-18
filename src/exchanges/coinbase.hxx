@@ -178,6 +178,8 @@ namespace EC {
     }
 
     void disconnect() {
+      if (conHandle.expired()) return;
+
       std::unique_lock<std::mutex> lk(m);
       isDisconnectIssued = true;
       websocketpp::lib::error_code ec;
