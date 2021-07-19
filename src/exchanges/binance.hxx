@@ -3,6 +3,8 @@
 
 #define FMT_HEADER_ONLY
 
+#include <functional>
+
 #include <rapidjson/document.h>
 #include <fmt/core.h>
 
@@ -41,8 +43,11 @@ namespace EC {
       return false;
     }
 
-    void subscribeInternal(const string& product, MD::Channel chan) {
+    void subscribeInternal(const string& symbol, MD::Channel chan) {
       ErrorCode ec;
+      string product = symbol;
+      std::transform(product.begin(), product.end(), product.begin(), ::tolower);
+
       auto time_now_nanos = std::chrono::high_resolution_clock::now().time_since_epoch().count();
       string ticker_subs = fmt::format(ticker_subscribe_template, product, time_now_nanos);
       ASIOClient::connection_ptr con = exCon->getConnectionFromHandle(conHandle, ec);
@@ -96,7 +101,7 @@ namespace EC {
     }
 
     void onMessageHandler(websocketpp::connection_hdl, ASIOClient::message_ptr msg) {
-      std::cout << "message" <<std::endl;
+      std::cout << "message - " << msg->get_payload() << std::endl;
 
       d.Parse(msg->get_payload().c_str());
 
@@ -105,11 +110,14 @@ namespace EC {
       }
       else if (d.HasMember("result") || d.HasMember("error"))  {
         onResponseMessage();
+      } else {
+        std::cout << "error message" << std::endl;
       }
     }
 
     void onResponseMessage() {
       // FIXME Deal with response messages
+      std::cout << "response message" << std::endl;
     }
 
     void onTickerMessage() {
@@ -118,7 +126,7 @@ namespace EC {
         return;
 
       MD::TradeEventPtr evPtr = MD::TradeEventPtr(new MD::TradeEvent());
-      const string symbol(d["s"].GetString());
+      string symbol(d["s"].GetString());
 
       evPtr->eventType = MD::Event::EventType::TRADE;
       MD::Trade &t = evPtr->t;
@@ -169,6 +177,7 @@ namespace EC {
     }
 
     void disconnect() {
+
       if (conHandle.expired()) return;
 
       std::unique_lock<std::mutex> lk(m);
