@@ -23,7 +23,7 @@ jobs:
           sudo pip3 install wheel setuptools conan
           cd $GITHUB_WORKSPACE 
           mkdir build && cd build && conan install .. -pr=../conan_profile
-          cmake ..
+          cmake -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON ..
           make -j 4
           bin/tests
           cd CMakeFiles/tests.dir/tests
