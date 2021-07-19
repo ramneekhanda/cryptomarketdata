@@ -83,7 +83,7 @@ namespace MD {
 
 }
 
-template <> struct fmt::formatter<MD::Trade>: fmt::formatter<std::string_view> {
+template <> struct fmt::formatter<MD::Trade>: formatter<string_view> {
   template <typename FormatContext>
   auto format(const MD::Trade& t, FormatContext& ctx) {
     string_view data = "";
