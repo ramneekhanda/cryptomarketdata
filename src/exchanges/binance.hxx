@@ -52,7 +52,6 @@ namespace EC {
       string ticker_subs = fmt::format(ticker_subscribe_template, product, time_now_nanos);
       ASIOClient::connection_ptr con = exCon->getConnectionFromHandle(conHandle, ec);
       if (con->get_state() == websocketpp::session::state::open) {
-        std::cout << "sending - " << ticker_subs << std::endl;
 
         exCon->sendOnHandle(conHandle, ticker_subs.c_str(), ec);
         if (ec) {
@@ -77,7 +76,6 @@ namespace EC {
     }
 
     void openHandler(websocketpp::connection_hdl) {
-      std::cout << "connected" <<std::endl;
       evBus->publish(getName(), MD::EventPtr(new MD::ConnectEvent()));
       auto reqs = reqAwaiting;
       reqAwaiting.clear();
@@ -95,13 +93,11 @@ namespace EC {
     }
 
     void closeHandler(websocketpp::connection_hdl) {
-      std::cout << "disconnected" <<std::endl;
 
       evBus->publish(getName(), MD::EventPtr(new MD::DisconnectEvent()));
     }
 
     void onMessageHandler(websocketpp::connection_hdl, ASIOClient::message_ptr msg) {
-      std::cout << "message - " << msg->get_payload() << std::endl;
 
       d.Parse(msg->get_payload().c_str());
 
@@ -117,7 +113,7 @@ namespace EC {
 
     void onResponseMessage() {
       // FIXME Deal with response messages
-      std::cout << "response message" << std::endl;
+
     }
 
     void onTickerMessage() {
@@ -127,6 +123,7 @@ namespace EC {
 
       MD::TradeEventPtr evPtr = MD::TradeEventPtr(new MD::TradeEvent());
       string symbol(d["s"].GetString());
+      std::transform(symbol.begin(), symbol.end(), symbol.begin(), ::toupper);
 
       evPtr->eventType = MD::Event::EventType::TRADE;
       MD::Trade &t = evPtr->t;

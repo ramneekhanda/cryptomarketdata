@@ -53,13 +53,11 @@ TEST_CASE("test binance btcusdt feed") {
     int disconnect_count = 0;
 
     auto unsubscribeExEvents = EC::ExchangeEventBus::getInstance()->subscribe("BINANCE", [&connect_count, &disconnect_count](MD::EventPtr e) {
-        std::cout << "connect_disconnect" << std::endl;
         if (e->eventType == MD::Event::CONNECT) connect_count++;
         if (e->eventType == MD::Event::DISCONNECT) disconnect_count++;
     });
 
     auto unsubscribe = EC::ExchangeEventBus::getInstance()->subscribe("BINANCE", "BTCUSDT", MD::Channel::TICKER, [&flag, &m, &data_received](MD::EventPtr e) {
-        std::cout << "received binance message" << std::endl;
         using namespace std::chrono;
         MD::TradeEventPtr p = std::dynamic_pointer_cast<MD::TradeEvent>(e);
         microseconds us = duration_cast<microseconds>(system_clock::now().time_since_epoch());
