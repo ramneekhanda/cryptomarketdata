@@ -1,12 +1,12 @@
 #ifndef MARKETDATA_H_
 #define MARKETDATA_H_
+
 #include <string>
 #include <list>
 #include <vector>
 #include <mutex>
 #include <tuple>
 
-#include <spdlog/fmt/ostr.h>
 #include <fmt/format.h>
 
 namespace MD {

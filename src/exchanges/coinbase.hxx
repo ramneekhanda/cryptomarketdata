@@ -1,8 +1,6 @@
 #ifndef COINBASE_H_
 #define COINBASE_H_
 
-#define FMT_HEADER_ONLY
-
 #include <rapidjson/document.h>
 #include <fmt/core.h>
 #include <spdlog/spdlog.h>
