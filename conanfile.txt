@@ -5,8 +5,9 @@ websocketpp/0.8.2
 openssl/1.1.1k
 rapidjson/1.1.0
 date/3.0.1
-fmt/8.0.1
+fmt/7.1.3
 doctest/2.4.6
+spdlog/1.8.5
 
 [generators]
 cmake

@@ -6,6 +6,9 @@
 #include <mutex>
 #include <tuple>
 
+#include <spdlog/fmt/ostr.h>
+#include <fmt/format.h>
+
 namespace MD {
 
   enum Channel {
@@ -55,10 +58,9 @@ namespace MD {
   };
 
   struct TradeEvent : public Event {
-      Trade t;
+    Trade t;
 
-      TradeEvent() { eventType = TRADE; }
-
+    TradeEvent() { eventType = TRADE; }
   };
 
   struct Level2Event : public Event {
@@ -80,5 +82,16 @@ namespace MD {
   typedef std::shared_ptr<Level2Event> Level2EventPtr;
 
 }
+
+template <> struct fmt::formatter<MD::Trade>: formatter<string_view> {
+  // parse is inherited from formatter<string_view>.
+  template <typename FormatContext>
+  auto format(const MD::Trade& t, FormatContext& ctx) {
+    string_view data = "";
+    data = fmt::format("[Trade time={} side={} price={} volume={} bid={} ask={}]", t.time, t.side, t.price, t.volume, t.bid, t.ask);
+
+    return formatter<string_view>::format(data, ctx);
+  }
+};
 
 #endif // MARKETDATA_H_

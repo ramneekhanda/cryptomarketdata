@@ -10,22 +10,23 @@
 #include "exchange_connect.hxx"
 
 namespace EC {
-  using namespace std;
 
   class ExchangeEventBus;
-  typedef shared_ptr<ExchangeEventBus> ExchangeEventBusPtr;
+  typedef std::shared_ptr<ExchangeEventBus> ExchangeEventBusPtr;
 
   class ExchangeEventBus {
+
     typedef rxcpp::subjects::subject<MD::EventPtr> EventSubject;
     typedef std::shared_ptr<EventSubject> EventSubjectPtr;
     typedef std::unordered_map<std::string, EventSubjectPtr> EventBus;
 
-    mutex muEventBus;
+    std::mutex muEventBus;
     ExchangeConnectorPtr exCon;
     EventBus eventBus;
     static ExchangeEventBusPtr self;
 
     void ensureTopicExists(const std::string &topic) {
+      using namespace std;
       unique_lock<mutex> lk(muEventBus);
       EventBus::iterator itr = eventBus.find(topic);
       if (itr == eventBus.end()) {
@@ -52,6 +53,7 @@ namespace EC {
     }
 
     void shutdown() {
+      using namespace std;
       exCon->shutdown();
       unique_lock<mutex> lk(muEventBus);
       eventBus.clear();
@@ -61,6 +63,8 @@ namespace EC {
     }
 
     void publish(const std::string &exchange, const std::string &symbol, MD::Channel chan, MD::EventPtr event) {
+      using namespace std;
+
       std::string topic = exchange + "_" + symbol + "_" + MD::ChannelName[chan];
       ensureTopicExists(topic);
 
@@ -72,6 +76,8 @@ namespace EC {
     }
 
     void publish(const std::string &exchange, MD::EventPtr event) {
+      using namespace std;
+
       std::string topic = exchange;
 
       ensureTopicExists(topic);
@@ -96,6 +102,8 @@ void noop() {}
 
 template <typename T>
 std::function<void ()> EC::ExchangeEventBus::subscribe(const std::string &exchange, const std::string& symbol, MD::Channel chan, T subscriber)  {
+  using namespace std;
+
   std::string topic = exchange + "_" + symbol + "_" + MD::ChannelName[chan];
 
   // FIXME silent return should be avoided
@@ -113,6 +121,8 @@ std::function<void ()> EC::ExchangeEventBus::subscribe(const std::string &exchan
 
 template <typename T>
 std::function<void ()> EC::ExchangeEventBus::subscribe(const std::string &exchange, T subscriber)  {
+  using namespace std;
+
   std::string topic = exchange;
 
   // FIXME silent return should be avoided
@@ -128,6 +138,7 @@ std::function<void ()> EC::ExchangeEventBus::subscribe(const std::string &exchan
 }
 
 void EC::ExchangeEventBus::unsubscribe(const std::string &exchange, rxcpp::composite_subscription& cs) {
+  using namespace std;
   std::string topic = exchange;
 
   unique_lock<mutex> lk(muEventBus);
@@ -136,6 +147,8 @@ void EC::ExchangeEventBus::unsubscribe(const std::string &exchange, rxcpp::compo
 }
 
 void EC::ExchangeEventBus::unsubscribe(const std::string &exchange, const std::string& symbol, MD::Channel chan, rxcpp::composite_subscription& cs) {
+  using namespace std;
+
   std::string topic = exchange + "_" + symbol + "_" + MD::ChannelName[chan];
 
   unique_lock<mutex> lk(muEventBus);
