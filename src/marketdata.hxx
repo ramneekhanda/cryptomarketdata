@@ -43,8 +43,8 @@ namespace MD {
   struct Level2 {
     L2UpdateType type;
     uint64_t time;
-    //std::vector<std::pair<double, double>> bids;
-    //std::vector<std::pair<double, double>> asks;
+    std::vector<std::pair<double, double>> bids;
+    std::vector<std::pair<double, double>> asks;
   };
 
   struct Event {
@@ -83,8 +83,7 @@ namespace MD {
 
 }
 
-template <> struct fmt::formatter<MD::Trade>: formatter<string_view> {
-  // parse is inherited from formatter<string_view>.
+template <> struct fmt::formatter<MD::Trade>: fmt::formatter<std::string_view> {
   template <typename FormatContext>
   auto format(const MD::Trade& t, FormatContext& ctx) {
     string_view data = "";

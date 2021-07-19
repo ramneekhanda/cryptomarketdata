@@ -80,6 +80,7 @@ namespace EC {
 
     void openHandler(websocketpp::connection_hdl) {
       using namespace std;
+
       SPDLOG_INFO("{} connected", getName());
 
       evBus->publish(getName(), MD::EventPtr(new MD::ConnectEvent()));
@@ -93,9 +94,9 @@ namespace EC {
       for (auto uuid_req : reqs) {
         if (std::get<0>(uuid_req.second))
           this->subscribeInternal(std::get<2>(uuid_req.second), std::get<1>(uuid_req.second));
+        else
+          reqs.erase(uuid_req.first);
       }
-
-      // FIXME reemit reqsawaiting and remove unsubscription requests
     }
 
     void closeHandler(websocketpp::connection_hdl) {
@@ -120,8 +121,32 @@ namespace EC {
     }
 
     void onResponseMessage() {
-      // FIXME Deal with response messages
       SPDLOG_DEBUG("response message on {}", getName());
+      if (d.HasMember("result") && d.HasMember("id") && d["id"].IsUint64()) {
+        auto r = reqAwaiting.find(d["id"].GetUint64());
+        if ( r != reqAwaiting.end()) {
+          bool s = std::get<0>(r->second);
+          MD::Channel c = std::get<1>(r->second);
+          std::string p = std::get<2>(r->second);
+          SPDLOG_INFO("{} {}/{}/{}",  s ? "subscribed" : "unsubscribed", getName(), MD::ChannelName[c], p);
+
+          auto cSubsc = subscriptions.find(c);
+          if (s) {
+            if (cSubsc == subscriptions.end()) {
+              std::set<std::string> s;
+              s.insert(p);
+              subscriptions.insert(std::pair<MD::Channel, std::set<std::string>>(c, s));
+            }
+            else
+              cSubsc->second.insert(p);
+          } else if (!s && cSubsc != subscriptions.end()) {
+            cSubsc->second.erase(p);
+          } else {
+            SPDLOG_WARN("internal state mismatch found!");
+          }
+          reqAwaiting.erase(r);
+        }
+      }
     }
 
     void onTickerMessage() {
@@ -185,6 +210,9 @@ namespace EC {
     }
 
     void disconnect() {
+      subscriptions.clear();
+      reqAwaiting.clear();
+
       if (conHandle.expired()) return;
       SPDLOG_INFO("disconnecting {}", getName());
 
