@@ -5,6 +5,7 @@
 
 #include <rapidjson/document.h>
 #include <fmt/core.h>
+#include <spdlog/spdlog.h>
 
 #include "../exchange_connect.hxx"
 #include "../exchange_eventbus.hxx"
@@ -12,22 +13,20 @@
 #include "../utils.hxx"
 
 namespace EC {
-  using namespace std;
-  using namespace rapidjson;
 
   class CoinBase : public Exchange {
   protected:
-    static const string coinbase_endpoint;
-    static const string ticker_subscribe_template;
-    static const string ticker_unsubscribe_template;
-    static const string name;
+    static const std::string coinbase_endpoint;
+    static const std::string ticker_subscribe_template;
+    static const std::string ticker_unsubscribe_template;
+    static const std::string name;
     static int registerSelf;
 
-    Document d;
+    rapidjson::Document d;
     websocketpp::connection_hdl conHandle;
     ExchangeConnectorPtr exCon;
     ExchangeEventBusPtr evBus;
-    map<MD::Channel, set<string>> subscriptions;
+    std::map<MD::Channel, std::set<std::string>> subscriptions;
     bool isDisconnectIssued;
     std::mutex m;
 
@@ -40,34 +39,41 @@ namespace EC {
       return false;
     }
 
-    void subscribeInternal(const string& product, MD::Channel chan) {
+    void subscribeInternal(const std::string& product, MD::Channel chan) {
+      using namespace std;
+
       ErrorCode ec;
       string ticker_subs = fmt::format(ticker_subscribe_template, product);
       ASIOClient::connection_ptr con = exCon->getConnectionFromHandle(conHandle, ec);
       if (con->get_state() == websocketpp::session::state::open) {
+        SPDLOG_INFO("sending subscription {}/{}/{}", getName(), MD::ChannelName[chan], product);
         exCon->sendOnHandle(conHandle, ticker_subs.c_str(), ec);
         if (ec) {
-          cout << "Subscription send error on coinbase: " << ec.message() << endl;
+          SPDLOG_ERROR("error in response to subscription request for {} on channel {} - {}", product, MD::ChannelName[chan], ec.message());
+          return;
         }
       }
       subscriptions[chan].insert(product);
     }
 
-    void unsubscribeInternal(const string& product, MD::Channel chan) {
+    void unsubscribeInternal(const std::string& product, MD::Channel chan) {
+      using namespace std;
+
       ErrorCode ec;
       string ticker_unsubs = fmt::format(ticker_unsubscribe_template, product);
       ASIOClient::connection_ptr con = exCon->getConnectionFromHandle(conHandle, ec);
       if (con->get_state() == websocketpp::session::state::open) {
+        SPDLOG_INFO("sending unsubscription {}/{}/{}", getName(), MD::ChannelName[chan], product);
         exCon->sendOnHandle(conHandle, ticker_unsubs.c_str(), ec);
         if (ec) {
-          cout << "Unsubscription send error on coinbase: " << ec.message() << endl;
+          SPDLOG_ERROR("error in response to unsubscription request for {} on channel {} - {}", product, MD::ChannelName[chan], ec.message());
         }
       }
       subscriptions[chan].erase(product);
-      //remove_if(subscriptions[chan].begin(), subscriptions[chan].end(), [product](auto val){ return val == product; });
     }
 
     void openHandler(websocketpp::connection_hdl) {
+      SPDLOG_INFO("{} connected", getName());
 
       evBus->publish(getName(), MD::EventPtr(new MD::ConnectEvent()));
       for (auto chan_prod : subscriptions) {
@@ -77,10 +83,14 @@ namespace EC {
     }
 
     void closeHandler(websocketpp::connection_hdl) {
+      SPDLOG_INFO("{} disconnected", getName());
+
       evBus->publish(getName(), MD::EventPtr(new MD::DisconnectEvent()));
     }
 
     void onMessageHandler(websocketpp::connection_hdl, ASIOClient::message_ptr msg) {
+      SPDLOG_DEBUG("message on {} - {}", getName(), msg->get_payload());
+
       d.Parse(msg->get_payload().c_str());
 
       if (d.HasMember("type") && std::string(d["type"].GetString()) == "ticker") {
@@ -88,15 +98,20 @@ namespace EC {
       }
       else if (d.HasMember("type") && std::string(d["type"].GetString()) == "subscriptions") {
         onSubscriptionsMessage();
+      } else {
+        SPDLOG_WARN("received unhandled message on  {} - {}", getName(), msg->get_payload());
       }
     }
 
     void onSubscriptionsMessage() {
+      using namespace std;
+
       std::set<string> symbolsSub, symbolsUnsub;
+      SPDLOG_DEBUG("subscriptions message on {}", getName());
 
       if (!d.HasMember("channels") || !d["channels"].IsArray())
         return;
-      const Value &chans = d["channels"];
+      const rapidjson::Value &chans = d["channels"];
       for (auto &item : chans.GetArray()) {
         if (item.IsObject() && item.HasMember("name") && item["name"].IsString()  && item.HasMember("product_ids") && item["product_ids"].IsArray()) {
           if (item["name"] == "ticker") {
@@ -124,6 +139,7 @@ namespace EC {
     }
 
     void onTickerMessage() {
+      using namespace std;
       if (!d.HasMember("price") || !d.HasMember("time") || !d.HasMember("last_size") || !d.HasMember("side") || !d.HasMember("best_bid") || !d.HasMember("best_ask"))
         return;
 
@@ -139,6 +155,9 @@ namespace EC {
       t.side = (d["side"].GetString() == std::string("buy")) ? MD::Side::BUY : MD::Side::SELL;
       t.bid = stod(d["best_bid"].GetString());
       t.ask = stod(d["best_ask"].GetString());
+
+      SPDLOG_INFO("tradeevent {}/{}/{} - {}", getName(), MD::ChannelName[MD::Channel::TICKER], symbol, t);
+
       evBus->publish(getName(), symbol, MD::Channel::TICKER, evPtr);
     }
 
@@ -152,6 +171,8 @@ namespace EC {
     }
 
     void connect() {
+      using namespace std;
+
       ErrorCode ec;
       exCon = ExchangeConnector::getInstance();
       evBus = ExchangeEventBus::getInstance();
@@ -164,7 +185,7 @@ namespace EC {
       con = exCon->getConnection(coinbase_endpoint, ec);
 
       if (ec) {
-        cout << "COINBASE: connect initialization error: " << ec.message() << endl;
+        SPDLOG_ERROR("connection error on {}", getName());
         return;
       }
 
@@ -178,7 +199,11 @@ namespace EC {
     }
 
     void disconnect() {
+      using namespace std;
+
       if (conHandle.expired()) return;
+
+      SPDLOG_INFO("disconnecting {}", getName());
 
       std::unique_lock<std::mutex> lk(m);
       isDisconnectIssued = true;
@@ -188,7 +213,9 @@ namespace EC {
       con->close(websocketpp::close::status::normal, "goodbye!");
     }
 
-    void subscribe(const string& product, MD::Channel chan) {
+    void subscribe(const std::string& product, MD::Channel chan) {
+      using namespace std;
+
       if (subscriptions.find(chan) != subscriptions.end()
           && std::find(subscriptions[chan].begin(), subscriptions[chan].end(), product) != subscriptions[chan].end()) {
           return; // we are already subscribed
@@ -196,7 +223,8 @@ namespace EC {
       subscribeInternal(product, chan);
     }
 
-    void unsubscribe(const string& product, MD::Channel chan) {
+    void unsubscribe(const std::string& product, MD::Channel chan) {
+      using namespace std;
       if (subscriptions.find(chan) == subscriptions.end()
           || find(subscriptions[chan].begin(), subscriptions[chan].end(), product) == subscriptions[chan].end()) {
           return; // we are already unsubscribed
@@ -204,11 +232,11 @@ namespace EC {
       unsubscribeInternal(product, chan);
     }
   };
-  const string CoinBase::coinbase_endpoint("wss://ws-feed.pro.coinbase.com");
-  const string CoinBase::ticker_subscribe_template("{{\"type\":\"subscribe\",\"channels\":[{{\"name\":\"ticker\",\"product_ids\":[\"{}\"]}}]}}");
-  const string CoinBase::ticker_unsubscribe_template("{{\"type\":\"unsubscribe\",\"channels\":[{{\"name\":\"ticker\",\"product_ids\":[\"{}\"]}}]}}");
+  const std::string CoinBase::coinbase_endpoint("wss://ws-feed.pro.coinbase.com");
+  const std::string CoinBase::ticker_subscribe_template("{{\"type\":\"subscribe\",\"channels\":[{{\"name\":\"ticker\",\"product_ids\":[\"{}\"]}}]}}");
+  const std::string CoinBase::ticker_unsubscribe_template("{{\"type\":\"unsubscribe\",\"channels\":[{{\"name\":\"ticker\",\"product_ids\":[\"{}\"]}}]}}");
 
-  const string CoinBase::name("COINBASE");
+  const std::string CoinBase::name("COINBASE");
   int CoinBase::registerSelf = ExchangeConnector::registerExchange(CoinBase::name, ExchangePtr(new CoinBase()));
 }
 #endif // COINBASE_H_

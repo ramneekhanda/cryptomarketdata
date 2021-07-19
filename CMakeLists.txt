@@ -23,6 +23,7 @@ target_link_libraries(tests
   CONAN_PKG::rapidjson
   CONAN_PKG::date
   CONAN_PKG::doctest
+  CONAN_PKG::spdlog
   )
 
 target_link_libraries(tests-nocover
@@ -33,6 +34,7 @@ target_link_libraries(tests-nocover
   CONAN_PKG::rapidjson
   CONAN_PKG::date
   CONAN_PKG::doctest
+  CONAN_PKG::spdlog
   )
 
 target_link_options(tests PRIVATE --coverage)

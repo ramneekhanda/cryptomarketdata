@@ -7,22 +7,22 @@
 
 #include <websocketpp/config/asio_client.hpp>
 #include <websocketpp/client.hpp>
+#include <spdlog/spdlog.h>
 
 #include "marketdata.hxx"
 
 namespace EC {
-  using namespace std;
 
   class ExchangeEventBus;
 
   class ExchangeConnector;
-  typedef shared_ptr<ExchangeConnector> ExchangeConnectorPtr;
+  typedef std::shared_ptr<ExchangeConnector> ExchangeConnectorPtr;
 
   typedef websocketpp::lib::asio::ssl::context SSLContext;
   typedef websocketpp::client<websocketpp::config::asio_tls_client> ASIOClient;
 
   typedef websocketpp::lib::error_code ErrorCode;
-  typedef shared_ptr<SSLContext> ContextPtr;
+  typedef std::shared_ptr<SSLContext> ContextPtr;
 
   /**
    * Abstract class that represent an instance of an exchange
@@ -31,18 +31,19 @@ namespace EC {
     public:
       virtual void connect() = 0;
       virtual void disconnect() = 0;
-      virtual void subscribe(const string&, MD::Channel) = 0;
-      virtual void unsubscribe(const string&, MD::Channel) = 0;
+      virtual void subscribe(const std::string&, MD::Channel) = 0;
+      virtual void unsubscribe(const std::string&, MD::Channel) = 0;
       virtual std::string const& getName() = 0;
       virtual ~Exchange() {}
   };
-  typedef unique_ptr<Exchange> ExchangePtr;
-  typedef unordered_map<std::string, unique_ptr<Exchange>> ExchangeMap;
+  typedef std::unique_ptr<Exchange> ExchangePtr;
+  typedef std::unordered_map<std::string, std::unique_ptr<Exchange>> ExchangeMap;
 
   class ExchangeConnector {
-    shared_ptr<ASIOClient> client;
+
+    std::shared_ptr<ASIOClient> client;
     friend ExchangeEventBus;
-    static mutex muExchangeMap;
+    static std::mutex muExchangeMap;
   protected:
     std::shared_ptr<std::thread> feedThread;
     static ExchangeConnectorPtr self;
@@ -90,7 +91,7 @@ namespace EC {
     }
 
     void shutdownInternal() {
-      std::unique_lock<mutex> lk(muExchangeMap);
+      std::unique_lock<std::mutex> lk(muExchangeMap);
       for (auto &conn : exchangeMap) {
         conn.second->disconnect();
       }
@@ -113,13 +114,15 @@ namespace EC {
     }
 
     static int registerExchange(const std::string& name, ExchangePtr && exchange) {
+      using namespace std;
       std::unique_lock<mutex> lk(muExchangeMap);
       exchangeMap[name] = std::move(exchange);
-      cout << "registered exchange with name - " << name << endl;
+      SPDLOG_INFO("exchange registered - {}", name);
       return 0;
     }
 
     bool ensureConnected(const std::string& exchange) {
+      using namespace std;
       // FIXME unnecessary allocation
       std::unique_lock<mutex> lk(muExchangeMap);
       ExchangePtr &p = exchangeMap[exchange];
@@ -134,6 +137,7 @@ namespace EC {
 
 
     void subscribe(const std::string& exchange, const std::string& symbol, MD::Channel chan) {
+      using namespace std;
       std::unique_lock<mutex> lk(muExchangeMap);
       ExchangePtr &p = exchangeMap[exchange];
       lk.unlock();
@@ -144,6 +148,7 @@ namespace EC {
     }
 
     void unsubscribe(const std::string& exchange, const std::string& symbol, MD::Channel chan) {
+      using namespace std;
       std::unique_lock<mutex> lk(muExchangeMap);
       ExchangePtr &p = exchangeMap[exchange];
       lk.unlock();
@@ -170,7 +175,7 @@ namespace EC {
     }
   };
 
-  mutex ExchangeConnector::muExchangeMap;
+  std::mutex ExchangeConnector::muExchangeMap;
   ExchangeConnectorPtr ExchangeConnector::self = nullptr;
   ExchangeMap ExchangeConnector::exchangeMap;
 }

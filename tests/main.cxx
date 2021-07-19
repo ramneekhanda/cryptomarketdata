@@ -32,7 +32,7 @@ TEST_CASE("test coinbase btcusd feed") {
         data_received = true;
         REQUIRE(p->t.price > 0);
         REQUIRE(p->t.volume > 0.);
-        WARN(us.count() < (2000000 + p->t.time));
+        WARN(us.count() < (20000000 + p->t.time));
         REQUIRE(p->t.ask > p->t.bid);
         flag.notify_one();
     });
@@ -66,7 +66,7 @@ TEST_CASE("test binance btcusdt feed") {
         data_received = true;
         REQUIRE(p->t.price > 0);
         REQUIRE(p->t.volume > 0.);
-        WARN(us.count() < (2000000 + p->t.time));
+        WARN(us.count() < (20000000 + p->t.time));
         REQUIRE(p->t.ask == 0);
         REQUIRE(p->t.bid == 0);
 
