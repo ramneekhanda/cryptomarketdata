@@ -2,8 +2,6 @@
 #include <chrono>
 #include <condition_variable>
 
-#define FMT_HEADER_ONLY
-
 #include <spdlog/spdlog.h>
 #include <doctest/doctest.h>
 

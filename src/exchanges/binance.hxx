@@ -1,8 +1,6 @@
 #ifndef BINANCE_H_
 #define BINANCE_H_
 
-#define FMT_HEADER_ONLY
-
 #include <functional>
 
 #include <rapidjson/document.h>
